@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Sistema Financeiro - Registradora{% endblock %}
+{% block content %}
+
+
+<div class="form-container">
+
+    <!-- FORMULÁRIO DE CADASTRO DE MATÉRIA-PRIMA -->
+    <div>
+        <h2>Cadastro de Matéria-Prima</h2>
+        <form method="post">
+            {% csrf_token %}
+            {{ form_mp.as_p }}
+            <button type="submit" name="salvar_materia">Salvar Matéria-Prima</button>
+        </form>
+    </div>
+
+    <!-- FORMULÁRIO DE REGISTRO DE COMPRA -->
+    <div>
+        <h2>Registro de Compra</h2>
+        <form method="post">
+            {% csrf_token %}
+            {{ form_compra.materia_prima.label_tag }} {{ form_compra.materia_prima }}
+            {{ form_compra.unidade.label_tag }} {{ form_compra.unidade }}
+
+            <div id="campos_quantidade" style="display:none;">
+                {{form_compra.unidade_em_quantidade.label_tag}} {{form_compra.unidade_em_quantidade}}
+                {{form_compra.valor_por_quantidade.label_tag}} {{form_compra.valor_por_quantidade}}
+            </div>
+
+            <div id="campos_cm" style="display:none;">
+                {{form_compra.unidade_em_cm.label_tag}} {{form_compra.unidade_em_cm}}
+
+                {{form_compra.valor_por_cm.label_tag}} {{form_compra.valor_por_cm}}
+            </div>
+
+            {{ form_compra.preco.label_tag }} {{ form_compra.preco }}
+            {{ form_compra.fornecedor.label_tag }} {{ form_compra.fornecedor }}
+            {{ form_compra.data_compra.label_tag }} {{ form_compra.data_compra }}
+            <button type="submit" name="salvar_compra" class="salvarcompra">Salvar Compra</button>
+        </form>
+    </div>
+
+</div>
+
+{% block scripts %}
+<link rel="stylesheet" href="{% static 'css/registradora.css' %}">
+<script src="{% static 'js/registradora.js' %}"></script>
+{% endblock %}
+{% endblock %}

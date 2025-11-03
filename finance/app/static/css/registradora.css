@@ -1,0 +1,106 @@
+/* ================================
+   CSS - REGISTRADORA (ajustado para centralizar)
+   ================================ */
+
+body {
+    font-family: Arial, sans-serif;
+    margin: 40px;
+    background-color: #fafafa;
+}
+
+/* Títulos */
+h2 {
+    margin-bottom: 10px;
+    color: #333;
+    border-bottom: 2px solid #ddd;
+    padding-bottom: 5px;
+    text-align: center;
+}
+
+/* Container geral dos dois formulários */
+.form-container {
+    display: flex;
+    justify-content: center; /* centraliza horizontalmente */
+    align-items: flex-start;
+    gap: 60px; /* distância entre os dois formulários */
+    margin-top: 50px;
+    flex-wrap: wrap;
+}
+
+/* Cada formulário ocupa metade da largura disponível */
+form {
+    width: 420px; /* tamanho fixo para manter simetria */
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+/* Campos */
+form p,
+form div {
+    margin-bottom: 15px;
+}
+
+/* Labels e inputs */
+label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 4px;
+    color: #444;
+    margin-top: 4px;
+}
+
+input[type="text"],
+input[type="number"],
+input[type="date"],
+select {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #bbb;
+    border-radius: 4px;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+/* Botões */
+button {
+    background-color: #2e7d32;
+    color: white;
+    padding: 8px 14px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.salvarcompra {
+    margin-top: 15px;
+}
+
+button:hover {
+    background-color: #256628;
+}
+
+/* Campos condicionais */
+#campos_quantidade,
+#campos_cm {
+    border: 1px dashed #aaa;
+    padding: 10px;
+    border-radius: 4px;
+    background-color: #f9f9f9;
+    margin-top: 10px;
+}
+
+/* Responsividade */
+@media (max-width: 950px) {
+    .form-container {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    form {
+        width: 90%;
+    }
+}

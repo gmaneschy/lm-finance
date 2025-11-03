@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+{% load static %}
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Sistema Financeiro - Linda Menina{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/navbar.css' %}">
+</head>
+<body>
+  <nav>
+      <a href="{% url 'index' %}">
+          Index
+      </a>
+      <a href="{% url 'registradora' %}">
+          Registradora
+      </a>
+      <a href="{% url 'estoque' %}">
+          Estoque
+      </a>
+  </nav>
+    {% block content %}
+    {% endblock %}
+</body>
+</html>
