@@ -4,10 +4,11 @@ from .models import MateriaPrima, CompraMateriaPrima
 class MateriaPrimaForm(forms.ModelForm):
     class Meta:
         model = MateriaPrima
-        fields = ['nome', 'categoria', 'cor']
+        fields = ['nome', 'categoria', 'especificacao', 'cor']
         labels = {
             'nome': 'Nome da Matéria-Prima',
             'categoria': 'Categoria',
+            'especificacao': 'Especificação',
             'cor': 'Cor (opcional)',
         }
 
@@ -19,7 +20,7 @@ class CompraMateriaPrimaForm(forms.ModelForm):
             'materia_prima', 'unidade',
             'unidade_em_quantidade', 'unidade_em_cm',
             'valor_por_quantidade', 'valor_por_cm',
-            'preco', 'fornecedor', 'data_compra'
+            'preco', 'marca', 'fornecedor', 'data_compra'
         ]
         labels = {
             'materia_prima': 'Matéria-Prima',
@@ -29,6 +30,7 @@ class CompraMateriaPrimaForm(forms.ModelForm):
             'valor_por_quantidade': 'Valor por Unidade (R$)',
             'valor_por_cm': 'Valor por Centímetro (R$)',
             'preco': 'Preço Total (R$)',
+            'marca': 'Marca',
             'fornecedor': 'Fornecedor',
             'data_compra': 'Data da Compra',
         }
