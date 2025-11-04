@@ -1,5 +1,7 @@
 from django.shortcuts import render, redirect
 from .forms import MateriaPrimaForm, CompraMateriaPrimaForm
+from django.http import JsonResponse
+from .models import CompraMateriaPrima
 
 # Create your views here.
 def index(request):
@@ -26,3 +28,20 @@ def registradora(request):
 
 def estoque(request):
     return render(request, 'estoque.html')
+
+
+
+def autocomplete_marcas(request):
+    """Retorna lista de marcas únicas já registradas"""
+    query = request.GET.get('q', '').lower()
+    marcas = CompraMateriaPrima.objects.values_list('marca', flat=True).distinct()
+    marcas_filtradas = [m for m in marcas if m and query in m.lower()]
+    return JsonResponse(list(marcas_filtradas), safe=False)
+
+
+def autocomplete_fornecedores(request):
+    """Retorna lista de fornecedores únicos já registrados"""
+    query = request.GET.get('q', '').lower()
+    fornecedores = CompraMateriaPrima.objects.values_list('fornecedor', flat=True).distinct()
+    fornecedores_filtrados = [f for f in fornecedores if f and query in f.lower()]
+    return JsonResponse(list(fornecedores_filtrados), safe=False)

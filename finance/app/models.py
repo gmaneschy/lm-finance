@@ -21,7 +21,7 @@ class MateriaPrima(models.Model):
     cor = models.CharField(max_length=100, blank=True, null=True)
 
     def __str__(self):
-        return f"{self.nome} {self.categoria} {self.especificacao} {self.cor} ({self.get_categoria_display()})"
+        return f"{self.nome} ({self.especificacao}) ({self.cor}) ({self.get_categoria_display()})"
 
 
 # =======================

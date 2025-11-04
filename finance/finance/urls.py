@@ -23,5 +23,7 @@ urlpatterns = [
     path('', views.index, name='index'),
     path('templates/index/', views.index, name='index'),
     path('templates/registradora/', views.registradora, name='registradora'),
+    path('autocomplete/marcas/', views.autocomplete_marcas, name='autocomplete_marcas'),
+    path('autocomplete/fornecedores/', views.autocomplete_fornecedores, name='autocomplete_fornecedores'),
     path('templates/estoque/', views.estoque, name='estoque'),
 ]
