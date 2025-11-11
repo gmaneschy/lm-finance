@@ -27,5 +27,7 @@ urlpatterns = [
     path('autocomplete/fornecedores/', views.autocomplete_fornecedores, name='autocomplete_fornecedores'),
 
     path('templates/cadastrar_produto/', views.cadastrar_produto, name='cadastrar_produto'),
+    path('templates/financeiro/', views.financeiro, name='financeiro'),
     path('templates/estoque/', views.estoque, name='estoque'),
+
 ]

@@ -191,7 +191,6 @@ def cadastrar_produto(request):
     return render(request, 'cadastrar_produto.html', context)
 
 
-
 def estoque(request):
     estoques = Estoque.objects.all()
     for e in estoques:
@@ -199,6 +198,8 @@ def estoque(request):
     return render(request, 'estoque.html', {'estoques': estoques})
 
 
+def financeiro(request):
+    return render(request, 'financeiro.html')
 
 
 def autocomplete_marcas(request):
