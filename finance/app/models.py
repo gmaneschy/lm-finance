@@ -46,6 +46,84 @@ class CompraMateriaPrima(models.Model):
                 f"{self.preco} R$ - {self.get_unidade_display()}")
 
 
+class Produto(models.Model):
+    CATEGORIAS = [
+        ('LACO', 'Laço'),
+        ('TIARA', 'Tiara'),
+        ('FAIXA', 'Faixa'),
+    ]
+
+    nome = models.CharField(max_length=100)
+    categoria = models.CharField(max_length=10, choices=CATEGORIAS)
+    quantidade_em_estoque = models.PositiveIntegerField(default=0)
+    custo_fixo_total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    valor_venda = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    lucro_por_venda = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    data_cadastro = models.DateField(default=timezone.now)
+
+    def __str__(self):
+        return self.nome
+
+    @property
+    def custo_total(self):
+        total_materiais = sum([m.valor_total for m in self.materiais_usados.all()])
+        return total_materiais + (self.custo_fixo_total or 0)
+
+
+class MaterialUsado(models.Model):
+    """
+    Modelo atualizado com tipo de unidade próprio
+    """
+    C_UNIDADE = [
+        ('QUANTIDADE', 'Quantidade'),
+        ('CM', 'Centímetro'),
+    ]
+
+    produto = models.ForeignKey(Produto, on_delete=models.CASCADE, related_name="materiais_usados")
+    compra_materia_prima = models.ForeignKey('CompraMateriaPrima', on_delete=models.CASCADE, null=True, blank=True)
+    tipo_unidade = models.CharField(max_length=20, choices=C_UNIDADE, default='CM')
+    qtd_material_usado = models.DecimalField(max_digits=10, decimal_places=2)
+
+    @property
+    def valor_unitario(self):
+        """
+        Retorna o valor unitário baseado no tipo de unidade selecionado
+        """
+        compra = self.compra_materia_prima
+        if not compra:
+            return Decimal(0)
+
+        # Usa o tipo_unidade do MaterialUsado, não da CompraMateriaPrima
+        if self.tipo_unidade == 'CM':
+            return compra.valor_por_cm or Decimal(0)
+        return compra.valor_por_quantidade or Decimal(0)
+
+    @property
+    def valor_total(self):
+        return self.valor_unitario * self.qtd_material_usado
+
+    def __str__(self):
+        if self.compra_materia_prima:
+            return f"{self.compra_materia_prima.materia_prima.nome} ({self.qtd_material_usado} {self.get_tipo_unidade_display()})"
+        return f"Material ({self.qtd_material_usado})"
+
+
+class CustoFixo(models.Model):
+    energia = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    cola = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    isqueiro = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    das_mei = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    taxas_bancarias = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+
+    @property
+    def custo_fixo_total(self):
+        return sum([
+            self.energia, self.cola, self.isqueiro,
+            self.das_mei, self.taxas_bancarias
+        ])
+
+    def __str__(self):
+        return f"Custo Fixo Total: R$ {self.custo_fixo_total:.2f}"
 
 
 class Estoque(models.Model):

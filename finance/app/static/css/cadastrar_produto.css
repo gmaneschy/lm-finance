@@ -1,22 +1,443 @@
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }
-h2 { margin-bottom: 20px; color: #333; }
-.form-container { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-bottom: 20px; }
-.coluna { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-.coluna h3 { margin-bottom: 15px; color: #0097a7; border-bottom: 2px solid #0097a7; padding-bottom: 5px; }
-.campo { margin-bottom: 15px; }
-.campo label { display: block; margin-bottom: 5px; font-weight: bold; color: #555; }
-.form-control { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }
-.material-item { margin-bottom: 15px; padding: 15px; background: #f9f9f9; border-radius: 4px; border: 1px solid #e0e0e0; position: relative; }
-.material-item.deletado { opacity: 0.5; background: #ffebee; }
-.remove-btn { background: #f44336; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; margin-top: 8px; font-size: 13px; }
-.remove-btn:hover { background: #d32f2f; }
-#add-material { background: #0097a7; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; width: 100%; margin-top: 10px; font-size: 14px; font-weight: bold; }
-#add-material:hover { background: #00838f; }
-.custo-total { background: #e3f2fd; padding: 15px; border-radius: 4px; margin-top: 15px; text-align: center; }
-.custo-total strong { color: #0097a7; font-size: 18px; }
-.botao-centro { text-align: center; margin-top: 20px; }
-.botao-centro button[type="submit"] { background: #4caf50; color: white; border: none; padding: 12px 40px; border-radius: 4px; cursor: pointer; font-size: 16px; }
-.botao-centro button[type="submit"]:hover { background: #45a049; }
-input[readonly] { background: #f0f0f0; cursor: not-allowed; }
-.delete-checkbox { display: none; }
+/* ========== CADASTRAR PRODUTO - ESTILOS ========== */
+
+.cadastro-produto-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.cadastro-produto-container h2 {
+    color: #2c3e50;
+    margin-bottom: 30px;
+    font-size: 28px;
+    text-align: center;
+}
+
+/* ========== GRID DE 3 COLUNAS ========== */
+.form-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+/* ========== COLUNAS ========== */
+.coluna {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s;
+    min-width: 0;
+}
+
+.coluna:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.coluna h3 {
+    margin: 0 0 20px 0;
+    padding-bottom: 10px;
+    border-bottom: 3px solid #3498db;
+    color: #2c3e50;
+    font-size: 20px;
+}
+
+.coluna-produto h3 { border-color: #3498db; }
+.coluna-materiais h3 { border-color: #e74c3c; }
+.coluna-custos h3 { border-color: #f39c12; }
+
+/* ========== CAMPOS ========== */
+.campo {
+    margin-bottom: 15px;
+}
+
+.campo label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+    color: #34495e;
+    font-size: 14px;
+}
+
+.form-control,
+input[type="text"],
+input[type="number"],
+select {
+    width: 100%;
+    padding: 10px;
+    border: 2px solid #e0e0e0;
+    border-radius: 6px;
+    font-size: 14px;
+    transition: border-color 0.3s;
+}
+
+.form-control:focus,
+input:focus,
+select:focus {
+    outline: none;
+    border-color: #3498db;
+}
+
+/* Campos automáticos (readonly) */
+.campo-automatico {
+    background: #f8f9fa !important;
+    color: #2c3e50 !important;
+    font-weight: bold;
+    cursor: not-allowed;
+}
+
+.campo-destaque {
+    background: #e8f4f8;
+    padding: 10px;
+    border-radius: 6px;
+    border-left: 4px solid #3498db;
+}
+
+.help-text {
+    display: block;
+    color: #7f8c8d;
+    font-size: 12px;
+    margin-top: 5px;
+    font-style: italic;
+}
+
+/* ========== CAMPOS EM LINHA ========== */
+.campo-linha {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.campo-metade {
+    margin-bottom: 0;
+}
+
+/* ========== MATERIAL ITEM ========== */
+.material-item {
+    position: relative;
+    background: #f8f9fa;
+    padding: 15px;
+    padding-top: 40px;
+    border-radius: 8px;
+    border: 2px solid #e0e0e0;
+    margin-bottom: 15px;
+    transition: all 0.3s;
+    width: 100%;
+    max-width: 100%;
+}
+
+.material-item:hover {
+    border-color: #3498db;
+}
+
+.material-item.deletado {
+    opacity: 0.5;
+    background: #ffe6e6;
+    border-color: #e74c3c;
+}
+
+/* Esconde campos de controle do Django */
+.material-item input[type="hidden"],
+.material-item input[type="checkbox"][name*="DELETE"] {
+    display: none;
+}
+
+/* ========== BOTÃO REMOVER (X) ========== */
+.btn-remover-material {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 28px;
+    height: 28px;
+    background: #e74c3c;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    line-height: 1;
+    transition: all 0.3s;
+    padding: 0;
+}
+
+.btn-remover-material:hover {
+    background: #c0392b;
+    transform: rotate(90deg);
+}
+
+.icon-x {
+    display: block;
+    font-weight: bold;
+}
+
+/* ========== VALOR DO MATERIAL ========== */
+.valor-material {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px dashed #bdc3c7;
+    text-align: right;
+}
+
+.valor-material small {
+    color: #7f8c8d;
+}
+
+.valor-material-span {
+    color: #27ae60;
+    font-weight: bold;
+}
+
+/* ========== AJUSTE DA COLUNA DE MATERIAIS USADOS ========== */
+.coluna-materiais {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    position: relative;
+}
+
+/* Área de rolagem dos materiais */
+#materiais-formset {
+    flex-grow: 1;
+    overflow-y: auto;
+    max-height: 400px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: #fff;
+    scroll-behavior: smooth;
+}
+
+/* Botão adicionar e total ao final */
+#add-material,
+.resumo-materiais {
+    margin-top: auto;
+}
+
+#add-material {
+    align-self: flex-end;
+    margin-top: 15px;
+    margin-bottom: 5px;
+    background: linear-gradient(135deg, #42a5f5, #1e88e5);
+    color: white;
+    font-weight: 600;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+    width: 100%;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+#add-material:hover {
+    background: linear-gradient(135deg, #1e88e5, #1565c0);
+}
+
+/* Total Materiais ao final */
+.resumo-materiais {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border-radius: 8px;
+    padding: 10px 14px;
+    text-align: right;
+    margin-top: 10px;
+    font-weight: 600;
+    font-size: 15px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+}
+
+.resumo-materiais .linha-resumo {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* ========== RESUMO DE CUSTOS FIXOS ========== */
+.resumo-custos {
+    margin-top: 20px;
+    padding: 15px;
+    background: linear-gradient(135deg, #f39c12, #f1c40f);
+    border-radius: 8px;
+    color: white;
+}
+
+.linha-resumo {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 16px;
+}
+
+.linha-resumo strong {
+    font-size: 20px;
+}
+
+/* ========== HEADER CUSTOS COM CADEADO ========== */
+.header-custos {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.header-custos h3 {
+    margin: 0;
+    padding: 0;
+    border: none;
+}
+
+.toggle-bloqueio {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    user-select: none;
+    background: #ecf0f1;
+    padding: 6px 12px;
+    border-radius: 20px;
+    transition: background 0.3s;
+}
+
+.toggle-bloqueio:hover {
+    background: #d5dbdb;
+}
+
+.toggle-bloqueio input[type="checkbox"] {
+    display: none;
+}
+
+.icone-cadeado {
+    font-size: 18px;
+    transition: transform 0.3s;
+}
+
+.toggle-bloqueio input:not(:checked) ~ .icone-cadeado {
+    transform: rotate(-15deg);
+}
+
+.toggle-bloqueio input:checked ~ .icone-cadeado::after {
+    content: '🔒';
+}
+
+.toggle-bloqueio input:not(:checked) ~ .icone-cadeado::after {
+    content: '🔓';
+}
+
+.texto-bloqueio {
+    font-size: 13px;
+    font-weight: 600;
+    color: #34495e;
+}
+
+/* Inputs bloqueados */
+.custo-fixo-input[readonly] {
+    background: #ecf0f1;
+    cursor: not-allowed;
+}
+
+/* ========== BOTÃO SALVAR ========== */
+.botao-centro {
+    text-align: center;
+    margin-top: 30px;
+}
+
+.btn-salvar {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 15px 50px;
+    border-radius: 30px;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.btn-salvar:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+}
+
+/* ========== RESPONSIVIDADE ========== */
+@media (max-width: 1200px) {
+    .form-container {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .coluna-produto {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 768px) {
+    .form-container {
+        grid-template-columns: 1fr;
+    }
+
+    .campo-linha {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ========== CORREÇÃO GERAL DE TAMANHOS ========== */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+/* Evita overflow horizontal */
+html, body {
+    width: 100%;
+    overflow-x: hidden;
+}
+
+/* Limita largura total dos inputs e selects */
+input[type="text"],
+input[type="number"],
+select,
+textarea {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+/* Corrige grid interno de campos em linha */
+.campo-linha {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    width: 100%;
+}
+
+/* Campos dentro de .campo-linha respeitam container */
+.campo-linha .campo input,
+.campo-linha .campo select {
+    width: 100%;
+    max-width: 100%;
+}
+
+/* Ajuste para form principal */
+.cadastro-produto-container form {
+    width: 100%;
+    overflow-x: hidden;
+}
+
+/* Limita colunas para não ultrapassar */
+.form-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    width: 100%;
+    box-sizing: border-box;
+}

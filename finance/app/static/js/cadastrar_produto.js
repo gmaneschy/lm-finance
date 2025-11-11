@@ -1,40 +1,64 @@
-// Aguarda o carregamento completo do DOM
-document.addEventListener("DOMContentLoaded", function() {
-    console.log("🚀 Script cadastrar_produto iniciado");
+// ========== CADASTRAR PRODUTO - JAVASCRIPT ==========
 
-    // Elementos do DOM
+document.addEventListener("DOMContentLoaded", function() {
+    console.log("🚀 Sistema de Cadastro de Produto iniciado");
+
+    // ========== ELEMENTOS DO DOM ==========
     const totalFormsInput = document.getElementById("id_form-TOTAL_FORMS");
     const formsetContainer = document.getElementById("materiais-formset");
     const addButton = document.getElementById("add-material");
-    const custoTotalSpan = document.getElementById("custo-total");
+    const custoTotalInput = document.getElementById("id_custo_total_estimado");
     const valorVendaInput = document.getElementById("id_valor_venda");
     const lucroVendaInput = document.getElementById("id_lucro_por_venda");
+    const totalMateriaisSpan = document.getElementById("total-materiais");
+    const totalCustosFixosSpan = document.getElementById("total-custos-fixos");
+    const bloqueioCheckbox = document.getElementById("id_custos_bloqueados");
 
-    // Verifica se os elementos existem
+    // Verifica elementos essenciais
     if (!totalFormsInput || !formsetContainer || !addButton) {
         console.error("❌ Elementos essenciais não encontrados!");
         return;
     }
 
-    // Carrega os dados dos materiais passados pelo Django
+    // ========== CARREGA DADOS DOS MATERIAIS ==========
     let materiaisData = {};
     try {
-        const scriptTag = document.querySelector('script[data-materiais]');
-        if (scriptTag) {
-            materiaisData = JSON.parse(scriptTag.textContent);
-        } else {
-            // Fallback: tenta buscar do template
-            const materiaisJsonElement = document.getElementById('materiais-data');
-            if (materiaisJsonElement) {
-                materiaisData = JSON.parse(materiaisJsonElement.textContent);
-            }
+        const materiaisJsonElement = document.getElementById('materiais-data');
+        if (materiaisJsonElement) {
+            materiaisData = JSON.parse(materiaisJsonElement.textContent);
+            console.log("✅ Materiais carregados:", Object.keys(materiaisData).length);
         }
-        console.log("✅ Dados dos materiais carregados:", materiaisData);
     } catch (e) {
-        console.error("❌ Erro ao carregar dados dos materiais:", e);
+        console.error("❌ Erro ao carregar materiais:", e);
     }
 
-    // ========== FUNÇÃO: ADICIONAR NOVO MATERIAL ==========
+    // ========== FUNÇÃO: TOGGLE BLOQUEIO CUSTOS FIXOS ==========
+    function toggleBloqueioCalculado() {
+        const inputs = document.querySelectorAll('.custo-fixo-input');
+        const bloqueado = bloqueioCheckbox.checked;
+
+        inputs.forEach(input => {
+            if (bloqueado) {
+                input.setAttribute('readonly', 'readonly');
+                input.style.cursor = 'not-allowed';
+            } else {
+                input.removeAttribute('readonly');
+                input.style.cursor = 'text';
+            }
+        });
+
+        const textoEl = document.querySelector('.texto-bloqueio');
+        if (textoEl) {
+            textoEl.textContent = bloqueado ? 'Bloqueado' : 'Desbloqueado';
+        }
+    }
+
+    if (bloqueioCheckbox) {
+        bloqueioCheckbox.addEventListener('change', toggleBloqueioCalculado);
+        toggleBloqueioCalculado();
+    }
+
+    // ========== FUNÇÃO: ADICIONAR MATERIAL ==========
     addButton.addEventListener("click", function() {
         console.log("➕ Adicionando novo material");
 
@@ -42,34 +66,27 @@ document.addEventListener("DOMContentLoaded", function() {
         const primeiroItem = document.querySelector(".material-item");
 
         if (!primeiroItem) {
-            console.error("❌ Não foi possível encontrar o template do material");
+            console.error("❌ Template não encontrado");
             return;
         }
 
         // Clona o primeiro item
         const novoItem = primeiroItem.cloneNode(true);
-
-        // Remove a classe "deletado" se existir
         novoItem.classList.remove("deletado");
+        novoItem.setAttribute("data-form-index", currentFormCount);
 
-        // Atualiza todos os campos do novo item
+        // Atualiza todos os elementos
         novoItem.querySelectorAll("input, select, label").forEach(elemento => {
             if (elemento.tagName === "LABEL") {
-                // Atualiza o atributo "for" das labels
                 const forAttr = elemento.getAttribute("for");
                 if (forAttr) {
                     elemento.setAttribute("for", forAttr.replace(/form-\d+-/, `form-${currentFormCount}-`));
                 }
             } else {
-                // Atualiza name e id de inputs e selects
-                if (elemento.name) {
-                    elemento.name = elemento.name.replace(/form-\d+-/, `form-${currentFormCount}-`);
-                }
-                if (elemento.id) {
-                    elemento.id = elemento.id.replace(/form-\d+-/, `form-${currentFormCount}-`);
-                }
+                if (elemento.name) elemento.name = elemento.name.replace(/form-\d+-/, `form-${currentFormCount}-`);
+                if (elemento.id) elemento.id = elemento.id.replace(/form-\d+-/, `form-${currentFormCount}-`);
 
-                // Limpa os valores
+                // Limpa valores
                 if (elemento.tagName === "SELECT") {
                     elemento.selectedIndex = 0;
                 } else if (elemento.type === "number" || elemento.type === "text") {
@@ -80,180 +97,154 @@ document.addEventListener("DOMContentLoaded", function() {
             }
         });
 
-        // Atualiza o data-index do botão remover
-        const removeBtn = novoItem.querySelector(".remove-btn");
-        if (removeBtn) {
-            removeBtn.setAttribute("data-index", currentFormCount);
-        }
+        // Reseta o valor do material
+        const valorSpan = novoItem.querySelector('.valor-material-span');
+        if (valorSpan) valorSpan.textContent = '0.00';
 
-        // Adiciona o novo item ao container
         formsetContainer.appendChild(novoItem);
-
-        // Incrementa o contador de forms
         totalFormsInput.value = currentFormCount + 1;
 
-        console.log(`✅ Novo material adicionado. Total de forms: ${totalFormsInput.value}`);
+        console.log(`✅ Material adicionado. Total: ${totalFormsInput.value}`);
 
-        // Reaplica os eventos
         aplicarEventos();
-        calcularCustoTotal();
+        calcularTudo();
     });
 
     // ========== FUNÇÃO: APLICAR EVENTOS ==========
     function aplicarEventos() {
-        console.log("🔄 Aplicando eventos nos elementos");
+        console.log("🔄 Aplicando eventos");
 
-        // Eventos dos botões REMOVER
-        document.querySelectorAll(".remove-btn").forEach(btn => {
-            // Remove evento antigo (se existir)
+        // EVENTOS: Botões remover
+        document.querySelectorAll(".btn-remover-material").forEach(btn => {
             btn.replaceWith(btn.cloneNode(true));
         });
 
-        document.querySelectorAll(".remove-btn").forEach(btn => {
+        document.querySelectorAll(".btn-remover-material").forEach(btn => {
             btn.addEventListener("click", function() {
-                console.log("🗑️ Removendo material");
+                const materiais = document.querySelectorAll(".material-item");
 
-                const item = this.closest(".material-item");
-                const deleteCheckbox = item.querySelector("input[type='checkbox'][name*='DELETE']");
-
-                if (deleteCheckbox) {
-                    // Se tem checkbox DELETE, marca para deletar (item já existente)
-                    deleteCheckbox.checked = true;
-                    item.classList.add("deletado");
-                    item.style.opacity = "0.5";
-                    item.style.background = "#ffebee";
-                } else {
-                    // Se não tem checkbox, remove do DOM (item novo)
-                    item.remove();
+                // ⚠️ Impede remover se houver apenas 1 material
+                if (materiais.length <= 1) {
+                    alert("⚠️ É necessário manter pelo menos um material no formulário.");
+                    return;
                 }
 
-                calcularCustoTotal();
+                console.log("🗑️ Removendo material definitivamente");
+                const item = this.closest(".material-item");
+                if (!item) return;
+
+                item.remove();
+
+                // Atualiza índices
+                const items = document.querySelectorAll(".material-item");
+                items.forEach((el, index) => {
+                    el.querySelectorAll("input, select, label").forEach(elemento => {
+                        if (elemento.name) elemento.name = elemento.name.replace(/form-\d+-/, `form-${index}-`);
+                        if (elemento.id) elemento.id = elemento.id.replace(/form-\d+-/, `form-${index}-`);
+                        if (elemento.tagName === "LABEL" && elemento.getAttribute("for"))
+                            elemento.setAttribute("for", elemento.getAttribute("for").replace(/form-\d+-/, `form-${index}-`));
+                    });
+                });
+
+                totalFormsInput.value = items.length;
+                console.log(`📉 Novo total de materiais: ${totalFormsInput.value}`);
+
+                calcularTudo();
             });
         });
 
-        // Eventos dos SELECTS de material
-        document.querySelectorAll('select[name*="compra_materia_prima"]').forEach(select => {
-            select.removeEventListener("change", calcularCustoTotal);
-            select.addEventListener("change", calcularCustoTotal);
+        // EVENTOS: Selects de material
+        document.querySelectorAll('.material-select').forEach(select => {
+            select.removeEventListener("change", calcularTudo);
+            select.addEventListener("change", calcularTudo);
         });
 
-        // Eventos dos INPUTS de quantidade
-        document.querySelectorAll('input[name*="qtd_material_usado"]').forEach(input => {
-            input.removeEventListener("input", calcularCustoTotal);
-            input.addEventListener("input", calcularCustoTotal);
+        // EVENTOS: Tipo de unidade
+        document.querySelectorAll('.tipo-unidade-select').forEach(select => {
+            select.removeEventListener("change", calcularTudo);
+            select.addEventListener("change", calcularTudo);
         });
 
-        // Eventos dos CUSTOS FIXOS
-        const custoFixoInputs = [
-            document.querySelector('input[name="energia"]'),
-            document.querySelector('input[name="cola"]'),
-            document.querySelector('input[name="isqueiro"]'),
-            document.querySelector('input[name="das_mei"]'),
-            document.querySelector('input[name="taxas_bancarias"]'),
-            document.querySelector('input[name="tempo"]')
-        ];
-
-        custoFixoInputs.forEach(input => {
-            if (input) {
-                input.removeEventListener("input", calcularCustoTotal);
-                input.addEventListener("input", calcularCustoTotal);
-            }
+        // EVENTOS: Quantidade de material
+        document.querySelectorAll('.qtd-material-input').forEach(input => {
+            input.removeEventListener("input", calcularTudo);
+            input.addEventListener("input", calcularTudo);
         });
 
-        // Evento do VALOR DE VENDA
+        // EVENTOS: Custos fixos
+        document.querySelectorAll('.custo-fixo-input').forEach(input => {
+            input.removeEventListener("input", calcularTudo);
+            input.addEventListener("input", calcularTudo);
+        });
+
+        // EVENTOS: Valor de venda
         if (valorVendaInput) {
-            valorVendaInput.removeEventListener("input", calcularCustoTotal);
-            valorVendaInput.addEventListener("input", calcularCustoTotal);
+            valorVendaInput.removeEventListener("input", calcularTudo);
+            valorVendaInput.addEventListener("input", calcularTudo);
         }
     }
 
-    // ========== FUNÇÃO: CALCULAR CUSTO TOTAL ==========
-    function calcularCustoTotal() {
-        console.log("💰 Calculando custo total");
+    // ========== FUNÇÃO: CALCULAR TUDO ==========
+    function calcularTudo() {
+        console.log("💰 Calculando valores");
 
         let totalMateriais = 0;
         let totalCustosFixos = 0;
 
-        // ===== CALCULA CUSTO DOS MATERIAIS =====
         document.querySelectorAll(".material-item").forEach(item => {
-            // Ignora itens marcados para deletar
-            const deleteCheckbox = item.querySelector("input[type='checkbox'][name*='DELETE']");
-            if (deleteCheckbox && deleteCheckbox.checked) {
-                console.log("⏭️ Item marcado para deletar, ignorando");
-                return;
-            }
+            const selectMaterial = item.querySelector('.material-select');
+            const selectTipoUnidade = item.querySelector('.tipo-unidade-select');
+            const inputQtd = item.querySelector('.qtd-material-input');
+            const valorSpan = item.querySelector('.valor-material-span');
 
-            const selectMaterial = item.querySelector('select[name*="compra_materia_prima"]');
-            const inputQtd = item.querySelector('input[name*="qtd_material_usado"]');
-
-            if (selectMaterial && inputQtd) {
+            if (selectMaterial && selectTipoUnidade && inputQtd) {
                 const materialId = selectMaterial.value;
+                const tipoUnidade = selectTipoUnidade.value;
                 const quantidade = parseFloat(inputQtd.value) || 0;
 
-                if (materialId && quantidade > 0) {
-                    // Busca o valor unitário nos dados carregados
+                let valorUnitario = 0;
+
+                if (materialId && materiaisData[materialId]) {
                     const material = materiaisData[materialId];
 
-                    if (material) {
-                        const valorUnitario = material.valor_unitario || 0;
-                        const custoMaterial = valorUnitario * quantidade;
-                        totalMateriais += custoMaterial;
-
-                        console.log(`📦 Material ID ${materialId}: ${quantidade} x R$ ${valorUnitario.toFixed(4)} = R$ ${custoMaterial.toFixed(2)}`);
-                    } else {
-                        console.warn(`⚠️ Material ID ${materialId} não encontrado nos dados`);
+                    if (tipoUnidade === 'CM') {
+                        valorUnitario = material.valor_por_cm || 0;
+                    } else if (tipoUnidade === 'QUANTIDADE') {
+                        valorUnitario = material.valor_por_quantidade || 0;
                     }
+
+                    const custoMaterial = valorUnitario * quantidade;
+                    totalMateriais += custoMaterial;
+
+                    if (valorSpan) valorSpan.textContent = custoMaterial.toFixed(2);
+                } else if (valorSpan) {
+                    valorSpan.textContent = '0.00';
                 }
             }
         });
 
-        // ===== CALCULA CUSTOS FIXOS =====
-        const custoFixoInputs = [
-            { nome: 'energia', input: document.querySelector('input[name="energia"]') },
-            { nome: 'cola', input: document.querySelector('input[name="cola"]') },
-            { nome: 'isqueiro', input: document.querySelector('input[name="isqueiro"]') },
-            { nome: 'das_mei', input: document.querySelector('input[name="das_mei"]') },
-            { nome: 'taxas_bancarias', input: document.querySelector('input[name="taxas_bancarias"]') },
-            { nome: 'tempo', input: document.querySelector('input[name="tempo"]') }
-        ];
-
-        custoFixoInputs.forEach(({ nome, input }) => {
-            if (input) {
-                const valor = parseFloat(input.value) || 0;
-                totalCustosFixos += valor;
-                if (valor > 0) {
-                    console.log(`🔧 ${nome}: R$ ${valor.toFixed(2)}`);
-                }
-            }
+        document.querySelectorAll('.custo-fixo-input').forEach(input => {
+            totalCustosFixos += parseFloat(input.value) || 0;
         });
 
-        // ===== CALCULA TOTAL =====
         const custoTotal = totalMateriais + totalCustosFixos;
 
-        console.log(`📊 RESUMO:`);
-        console.log(`   Materiais: R$ ${totalMateriais.toFixed(2)}`);
-        console.log(`   Custos Fixos: R$ ${totalCustosFixos.toFixed(2)}`);
-        console.log(`   TOTAL: R$ ${custoTotal.toFixed(2)}`);
+        if (totalMateriaisSpan) totalMateriaisSpan.textContent = totalMateriais.toFixed(2);
+        if (totalCustosFixosSpan) totalCustosFixosSpan.textContent = totalCustosFixos.toFixed(2);
+        if (custoTotalInput) custoTotalInput.value = custoTotal.toFixed(2);
 
-        // Atualiza o span do custo total
-        if (custoTotalSpan) {
-            custoTotalSpan.textContent = custoTotal.toFixed(2);
-        }
-
-        // ===== CALCULA LUCRO =====
         if (valorVendaInput && lucroVendaInput) {
             const valorVenda = parseFloat(valorVendaInput.value) || 0;
             const lucro = valorVenda - custoTotal;
             lucroVendaInput.value = lucro.toFixed(2);
-
-            console.log(`💵 Valor Venda: R$ ${valorVenda.toFixed(2)}`);
-            console.log(`💰 Lucro: R$ ${lucro.toFixed(2)}`);
         }
+
+        console.log(`📊 Materiais: R$ ${totalMateriais.toFixed(2)} | Custos: R$ ${totalCustosFixos.toFixed(2)} | Total: R$ ${custoTotal.toFixed(2)}`);
     }
 
     // ========== INICIALIZAÇÃO ==========
     console.log("🎬 Inicializando sistema");
     aplicarEventos();
-    calcularCustoTotal();
+    calcularTudo();
     console.log("✅ Sistema pronto!");
 });

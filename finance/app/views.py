@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from .forms import MateriaPrimaForm, CompraMateriaPrimaForm
 from django.http import JsonResponse
-from .models import CompraMateriaPrima
+from .models import CompraMateriaPrima, CustoFixo
 from .models import Produto, MaterialUsado, Estoque
 from .forms import ProdutoForm, MaterialUsadoForm, CustoFixoForm
 from django.forms import modelformset_factory
@@ -36,9 +36,160 @@ def registradora(request):
 
 
 def cadastrar_produto(request):
+    """
+    View para cadastro completo de produtos
+    """
 
+    # Cria o formset para MaterialUsado
+    MaterialFormSet = modelformset_factory(
+        MaterialUsado,
+        form=MaterialUsadoForm,
+        extra=1,
+        can_delete=True
+    )
 
-    return render(request, 'cadastrar_produto.html')
+    # 🔹 Busca o último custo fixo salvo
+    ultimo_custo_fixo = CustoFixo.objects.last()
+
+    # Inicializa os formulários
+    produto_form = ProdutoForm(request.POST or None)
+    custo_fixo_form = CustoFixoForm(request.POST or None, instance=ultimo_custo_fixo)
+    formset = MaterialFormSet(
+        request.POST or None,
+        queryset=MaterialUsado.objects.none()
+    )
+
+    # Processa o POST
+    if request.method == 'POST':
+        print("\n" + "=" * 60)
+        print("📥 POST RECEBIDO - CADASTRO DE PRODUTO")
+        print("=" * 60)
+
+        # Valida os formulários
+        produto_valido = produto_form.is_valid()
+        formset_valido = formset.is_valid()
+        custo_fixo_valido = custo_fixo_form.is_valid()
+
+        print(f"✓ Produto válido: {produto_valido}")
+        print(f"✓ Materiais válido: {formset_valido}")
+        print(f"✓ Custos fixos válido: {custo_fixo_valido}")
+
+        # Exibe erros
+        if not produto_valido:
+            print("❌ Erros do produto:", produto_form.errors)
+        if not formset_valido:
+            print("❌ Erros dos materiais:", formset.errors)
+        if not custo_fixo_valido:
+            print("❌ Erros dos custos fixos:", custo_fixo_form.errors)
+
+        # Se tudo válido, salva
+        if produto_valido and formset_valido and custo_fixo_valido:
+            try:
+                # 1. Salva o custo fixo (atualiza se já existir)
+                custo_fixo = custo_fixo_form.save()
+                print(f"💰 Custo fixo salvo: R$ {custo_fixo.custo_fixo_total:.2f}")
+
+                # 2. Salva o produto
+                produto = produto_form.save(commit=False)
+                produto.custo_fixo_total = custo_fixo.custo_fixo_total
+                produto.save()
+                print(f"📦 Produto salvo: {produto.nome}")
+
+                # 3. Salva os materiais usados
+                materiais_salvos = 0
+                for form in formset:
+                    if form.cleaned_data and not form.cleaned_data.get('DELETE', False):
+                        material = form.save(commit=False)
+                        material.produto = produto
+                        material.save()
+                        materiais_salvos += 1
+
+                        print(f"   🎨 Material: {material.compra_materia_prima.materia_prima.nome}")
+                        print(f"      Quantidade: {material.qtd_material_usado} {material.get_tipo_unidade_display()}")
+                        print(f"      Valor unitário: R$ {material.valor_unitario:.4f}")
+                        print(f"      Valor total: R$ {material.valor_total:.2f}")
+
+                print(f"✅ {materiais_salvos} materiais salvos")
+
+                # 4. Cria ou atualiza o estoque
+                estoque, criado = Estoque.objects.get_or_create(
+                    produto=produto,
+                    defaults={'quantidade_produto': produto.quantidade_em_estoque}
+                )
+
+                if not criado:
+                    estoque.quantidade_produto = produto.quantidade_em_estoque
+                    estoque.save()
+
+                estoque.atualizar_valores()
+                print(f"📊 Estoque {'criado' if criado else 'atualizado'}")
+
+                # Resumo final
+                print("\n" + "-" * 60)
+                print(f"💵 RESUMO DO PRODUTO")
+                print(f"   Nome: {produto.nome}")
+                print(f"   Custo materiais: R$ {sum([m.valor_total for m in produto.materiais_usados.all()]):.2f}")
+                print(f"   Custos fixos: R$ {produto.custo_fixo_total:.2f}")
+                print(f"   Custo total: R$ {produto.custo_total:.2f}")
+                print(f"   Valor de venda: R$ {produto.valor_venda:.2f}")
+                print(f"   Lucro: R$ {produto.lucro_por_venda:.2f}")
+                print("-" * 60)
+
+                messages.success(
+                    request,
+                    f'✅ Produto "{produto.nome}" cadastrado com sucesso!'
+                )
+
+                print("=" * 60)
+                print("✅ CADASTRO CONCLUÍDO COM SUCESSO")
+                print("=" * 60 + "\n")
+
+                # 🔹 Redireciona, mas mantém o último custo fixo (pois foi salvo)
+                return redirect('cadastrar_produto')
+
+            except Exception as e:
+                print(f"\n❌ ERRO ao salvar: {e}")
+                import traceback
+                traceback.print_exc()
+
+                messages.error(
+                    request,
+                    f'❌ Erro ao cadastrar produto: {str(e)}'
+                )
+
+    # ========== PREPARA DADOS DOS MATERIAIS ==========
+    materiais_data = {}
+
+    try:
+        compras = CompraMateriaPrima.objects.select_related('materia_prima').all()
+
+        for compra in compras:
+            valor_por_cm = float(compra.valor_por_cm or Decimal('0'))
+            valor_por_quantidade = float(compra.valor_por_quantidade or Decimal('0'))
+
+            materiais_data[str(compra.id)] = {
+                'nome': f"{compra.materia_prima.nome} - {compra.marca}",
+                'unidade_padrao': compra.unidade,
+                'valor_por_cm': valor_por_cm,
+                'valor_por_quantidade': valor_por_quantidade
+            }
+
+        print(f"📦 {len(materiais_data)} materiais disponíveis para seleção")
+
+    except Exception as e:
+        print(f"❌ Erro ao carregar materiais: {e}")
+        materiais_data = {}
+
+    # Contexto para o template
+    context = {
+        'produto_form': produto_form,
+        'formset': formset,
+        'custo_fixo_form': custo_fixo_form,
+        'materiais_data_json': json.dumps(materiais_data),
+    }
+
+    return render(request, 'cadastrar_produto.html', context)
+
 
 
 def estoque(request):

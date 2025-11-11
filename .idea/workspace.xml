@@ -4,20 +4,15 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="887f3ea7-6749-4b04-b6aa-5711d566189f" name="Changes" comment="opções e autocomplete no campo de marca e fornecedor.">
-      <change afterPath="$PROJECT_DIR$/finance/app/static/css/cadastrar_produto.css" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/finance/app/static/js/cadastrar_produto.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/finance/app/templates/cadastrar_produto.html" afterDir="false" />
+    <list default="true" id="887f3ea7-6749-4b04-b6aa-5711d566189f" name="Changes" comment="remake cadastrar_produto">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/finance/app/forms.py" beforeDir="false" afterPath="$PROJECT_DIR$/finance/app/forms.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/finance/app/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/finance/app/models.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/finance/app/static/css/navbar.css" beforeDir="false" afterPath="$PROJECT_DIR$/finance/app/static/css/navbar.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/finance/app/templates/base.html" beforeDir="false" afterPath="$PROJECT_DIR$/finance/app/templates/base.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/finance/app/templates/estoque.html" beforeDir="false" afterPath="$PROJECT_DIR$/finance/app/templates/estoque.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/finance/app/static/css/cadastrar_produto.css" beforeDir="false" afterPath="$PROJECT_DIR$/finance/app/static/css/cadastrar_produto.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/finance/app/static/js/cadastrar_produto.js" beforeDir="false" afterPath="$PROJECT_DIR$/finance/app/static/js/cadastrar_produto.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/finance/app/templates/cadastrar_produto.html" beforeDir="false" afterPath="$PROJECT_DIR$/finance/app/templates/cadastrar_produto.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/finance/app/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/finance/app/views.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/finance/backlog.txt" beforeDir="false" afterPath="$PROJECT_DIR$/finance/backlog.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/finance/db.sqlite3" beforeDir="false" afterPath="$PROJECT_DIR$/finance/db.sqlite3" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/finance/finance/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/finance/finance/urls.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -114,13 +109,22 @@
       <option name="project" value="LOCAL" />
       <updated>1762281457480</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="remake cadastrar_produto">
+      <option name="closed" value="true" />
+      <created>1762870946089</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1762870946089</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="lm finance" />
     <MESSAGE value="campos adicionais no cadastro de materia-prima e registro de compra." />
     <MESSAGE value="opções e autocomplete no campo de marca e fornecedor." />
-    <option name="LAST_COMMIT_MESSAGE" value="opções e autocomplete no campo de marca e fornecedor." />
+    <MESSAGE value="remake cadastrar_produto" />
+    <option name="LAST_COMMIT_MESSAGE" value="remake cadastrar_produto" />
   </component>
 </project>
