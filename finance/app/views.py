@@ -2,6 +2,15 @@ from django.shortcuts import render, redirect
 from .forms import MateriaPrimaForm, CompraMateriaPrimaForm
 from django.http import JsonResponse
 from .models import CompraMateriaPrima
+from .models import Produto, MaterialUsado, Estoque
+from .forms import ProdutoForm, MaterialUsadoForm, CustoFixoForm
+from django.forms import modelformset_factory
+from django.contrib import messages
+from decimal import Decimal
+
+from django.forms import inlineformset_factory
+import json
+
 
 # Create your views here.
 def index(request):
@@ -26,8 +35,18 @@ def registradora(request):
     })
 
 
+def cadastrar_produto(request):
+
+
+    return render(request, 'cadastrar_produto.html')
+
+
 def estoque(request):
-    return render(request, 'estoque.html')
+    estoques = Estoque.objects.all()
+    for e in estoques:
+        e.atualizar_valores()
+    return render(request, 'estoque.html', {'estoques': estoques})
+
 
 
 

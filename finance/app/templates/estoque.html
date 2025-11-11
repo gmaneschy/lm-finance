@@ -4,5 +4,24 @@
 {% block content %}
 
 
+<h2>Estoque Provisório</h2>
+
+<table border="1">
+  <tr>
+    <th>Produto</th>
+    <th>Qtd</th>
+    <th>Valor Unitário</th>
+    <th>Valor Total</th>
+  </tr>
+  {% for e in estoques %}
+  <tr>
+    <td>{{ e.produto.nome }}</td>
+    <td>{{ e.quantidade_produto }}</td>
+    <td>R$ {{ e.valor_produto }}</td>
+    <td>R$ {{ e.produto_total }}</td>
+  </tr>
+  {% endfor %}
+</table>
+
 
 {% endblock %}

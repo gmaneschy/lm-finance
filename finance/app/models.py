@@ -1,10 +1,10 @@
 from django.db import models
 from django.utils import timezone
+from decimal import Decimal
+
 # Create your models here.
 
-# =======================
-#  MODELO DE MATÉRIA-PRIMA
-# =======================
+
 class MateriaPrima(models.Model):
     C_CATEGORIA = [
         ('FITA', 'Fita'),
@@ -24,9 +24,6 @@ class MateriaPrima(models.Model):
         return f"{self.nome} ({self.especificacao}) ({self.cor}) ({self.get_categoria_display()})"
 
 
-# =======================
-#  MODELO DE COMPRA DE MATÉRIA-PRIMA
-# =======================
 class CompraMateriaPrima(models.Model):
     C_UNIDADE = [
         ('QUANTIDADE', 'Quantidade'),
@@ -45,6 +42,24 @@ class CompraMateriaPrima(models.Model):
     data_compra = models.DateField(default=timezone.now)
 
     def __str__(self):
-        return (f"Compra de "
-                f"{self.materia_prima.nome} {self.unidade_em_quantidade} "
-                f"{self.unidade_em_cm} {self.preco} {self.unidade.lower()}")
+        return (f"Compra de {self.materia_prima.nome} ({self.marca}) - "
+                f"{self.preco} R$ - {self.get_unidade_display()}")
+
+
+
+
+class Estoque(models.Model):
+    produto = models.OneToOneField(Produto, on_delete=models.CASCADE)
+    quantidade_produto = models.PositiveIntegerField(default=0)
+    valor_produto = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    materia_prima_total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    produto_total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+
+    def atualizar_valores(self):
+        self.valor_produto = self.produto.custo_total
+        self.produto_total = self.valor_produto * self.quantidade_produto
+        self.materia_prima_total = sum([m.valor_total for m in self.produto.materiais_usados.all()])
+        self.save()
+
+    def __str__(self):
+        return f"Estoque de {self.produto.nome}"

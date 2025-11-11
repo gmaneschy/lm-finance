@@ -1,15 +1,12 @@
 TELAS
     CADASTRO DE MATÉRIA PRIMA
         (FORMULÁRIO) REGISTRO DE MATÉRIA PRIMA
-            Adicionar especificação de fita no formulário de registro de compra
         (FORMULÁRIO) COMPRA DE MATÉRIA PRIMA
-            Adicionar marca ao formulário de registro de compra
-                Sugerir autocomplete do fornecedor no registro de compra
-
 
     CADASTRO DE PRODUTO
-        FORUMULÁRIO DE CADASTRO DE PRODUTO
-
+        FORMULÁRIO DE CADASTRO DE PRODUTO
+           Corrigir Adicionar Material
+           Corrigir Custo Total Estimado
     ESTOQUE
         TABELA RESPONSIVA DE MATÉRIA PRIMA E PRODUTOS
 
