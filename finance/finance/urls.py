@@ -20,6 +20,8 @@ from app import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+
+    # Páginas principais
     path('', views.index, name='index'),
     path('templates/index/', views.index, name='index'),
     path('templates/registradora/', views.registradora, name='registradora'),
@@ -28,14 +30,19 @@ urlpatterns = [
 
     path('templates/cadastrar_produto/', views.cadastrar_produto, name='cadastrar_produto'),
     path('templates/financeiro/', views.financeiro, name='financeiro'),
+
+    # Página de Estoque
     path('templates/estoque/', views.estoque, name='estoque'),
 
-    # endpoints AJAX / API simples
-    path('api/estoque/update/', views.api_update_estoque, name='api_update_estoque'),
-    path('api/venda/create/', views.api_create_venda, name='api_create_venda'),
-    path('api/despesa/create/', views.api_create_despesa, name='api_create_despesa'),
+    # API Produtos
+    path('api/produtos/<int:id>/', views.api_produto_detalhe, name='api_produto_detalhe'),
+    path('api/produtos/<int:id>/editar/', views.api_produto_editar, name='api_produto_editar'),
+    path('api/produtos/novo/', views.api_produto_novo, name='api_produto_novo'),
+    path('api/produtos/<int:id>/excluir/', views.api_produto_excluir, name='api_produto_excluir'),
 
-    path('api/financeiro/resumo/', views.api_financeiro_resumo, name='api_financeiro_resumo'),
-    path('api/financeiro/venda/', views.api_registrar_venda, name='api_registrar_venda'),
-    path('api/financeiro/despesa/', views.api_registrar_despesa, name='api_registrar_despesa'),
+    # API Matérias-Primas
+    path('api/materias/<int:id>/', views.api_materia_detalhe, name='api_materia_detalhe'),
+    path('api/materias/<int:id>/editar/', views.api_materia_editar, name='api_materia_editar'),
+    path('api/materias/nova/', views.api_materia_nova, name='api_materia_nova'),
+    path('api/materias/<int:id>/excluir/', views.api_materia_excluir, name='api_materia_excluir'),
 ]

@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 {% load static %}
 
-<html lang="en">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Sistema Financeiro - Linda Menina{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'css/navbar.css' %}">
 </head>
@@ -25,7 +26,24 @@
           Financeiro
       </a>
   </nav>
+
+  <div class="content">
     {% block content %}
     {% endblock %}
+  </div>
+
+  <script>
+    // Destacar link da página atual
+    document.addEventListener('DOMContentLoaded', function() {
+        const currentUrl = window.location.href;
+        const navLinks = document.querySelectorAll('nav a');
+
+        navLinks.forEach(link => {
+            if (currentUrl.includes(link.getAttribute('href'))) {
+                link.classList.add('highlight');
+            }
+        });
+    });
+  </script>
 </body>
 </html>

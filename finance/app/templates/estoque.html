@@ -1,46 +1,230 @@
 {% extends "base.html" %}
 {% load static %}
-{% block title %}Sistema Financeiro - Estoque{% endblock %}
+{% block title %}Estoque - Sistema Completo{% endblock %}
+
 {% block content %}
+<div class="page estoque-page">
+    <h2>📦 Gestão de Estoque</h2>
 
+    <!-- Cards de Resumo -->
+    <div class="cards-row">
+        <div class="card small">
+            <div class="card-title">Total Produtos</div>
+            <div class="card-value">{{ produtos.count }}</div>
+        </div>
+        <div class="card small">
+            <div class="card-title">Total Matérias-Primas</div>
+            <div class="card-value">{{ materias.count }}</div>
+        </div>
+        <div class="card small">
+            <div class="card-title">Valor Estoque Produtos</div>
+            <div class="card-value">R$ {{ valor_total_produtos }}</div>
+        </div>
+        <div class="card small">
+            <div class="card-title">Valor Estoque Matérias</div>
+            <div class="card-value">R$ {{ valor_total_materias }}</div>
+        </div>
+    </div>
 
-<div class="page">
-  <h2>Estoque</h2>
+    <!-- Container das Tabelas Lado a Lado -->
+    <div class="tabelas-container">
+        <!-- Tabela de Produtos -->
+        <section class="panel">
+            <header class="panel-header">
+                <h3>🎀 Produtos</h3>
+                <div class="panel-actions">
+                    <input type="text" id="pesquisa-produto" class="mini-search" placeholder="Pesquisar produto...">
+                    <button class="btn btn-primary" onclick="abrirModalNovoProduto()">+ Novo Produto</button>
+                </div>
+            </header>
 
-  <div class="estoque-table-wrapper">
-    <table id="estoque-table">
-      <thead>
-        <tr>
-          <th>Produto</th>
-          <th>Qtd em Estoque</th>
-          <th>Valor unit. (R$)</th>
-          <th>Valor total do produto (R$)</th>
-          <th>Matéria-prima total (R$)</th>
-          <th>Ações</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for e in estoques %}
-        <tr data-estoque-id="{{ e.id }}">
-          <td>{{ e.produto.nome }}</td>
-          <td class="editable quantidade">{{ e.quantidade_produto }}</td>
-          <td class="editable valor">{{ e.valor_produto }}</td>
-          <td class="produto_total">{{ e.produto_total }}</td>
-          <td class="materia_prima_total">{{ e.materia_prima_total }}</td>
-          <td>
-            <button class="btn salvar-btn">Salvar</button>
-            <button class="btn atualizar-btn">Atualizar</button>
-          </td>
-        </tr>
-        {% empty %}
-        <tr><td colspan="6">Nenhum item em estoque.</td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+            <div class="table-wrap">
+                <table id="tabela-produtos" class="table">
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Categoria</th>
+                            <th>Estoque</th>
+                            <th>Custo Unit.</th>
+                            <th>Valor Venda</th>
+                            <th>Valor Total</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbody-produtos">
+                        {% for p in produtos %}
+                        <tr data-id="{{ p.id }}">
+                            <td>{{ p.nome }}</td>
+                            <td><span class="badge categoria">{{ p.get_categoria_display }}</span></td>
+                            <td class="{% if p.quantidade_em_estoque == 0 %}estoque-zero{% endif %}">
+                                {{ p.quantidade_em_estoque }}
+                            </td>
+                            <td>R$ {{ p.custo_total|floatformat:2 }}</td>
+                            <td>R$ {{ p.valor_venda|floatformat:2|default:"-" }}</td>
+                            <td class="valor-total">
+                                {% widthratio p.custo_total 1 p.quantidade_em_estoque as valor_total %}
+                                R$ {{ valor_total|floatformat:2 }}
+                            </td>
+                            <td class="actions">
+                                <button class="btn btn-sm btn-editar" onclick="editarProduto({{ p.id }})">✏️</button>
+                                <button class="btn btn-sm btn-excluir" onclick="excluirProduto({{ p.id }})">🗑️</button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center">Nenhum produto cadastrado</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Tabela de Matérias-Primas -->
+        <section class="panel">
+            <header class="panel-header">
+                <h3>🧵 Matérias-Primas</h3>
+                <div class="panel-actions">
+                    <input type="text" id="pesquisa-materia" class="mini-search" placeholder="Pesquisar matéria-prima...">
+                    <button class="btn btn-primary" onclick="abrirModalNovaMateria()">+ Nova Matéria</button>
+                </div>
+            </header>
+
+            <div class="table-wrap">
+                <table id="tabela-materias" class="table">
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Categoria</th>
+                            <th>Especificação</th>
+                            <th>Cor</th>
+                            <th>Último Preço</th>
+                            <th>Data Compra</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbody-materias">
+                        {% for m in materias %}
+                        <tr data-id="{{ m.id }}">
+                            <td>{{ m.nome }}</td>
+                            <td><span class="badge categoria">{{ m.get_categoria_display }}</span></td>
+                            <td>{{ m.especificacao }}</td>
+                            <td>{{ m.cor|default:"-" }}</td>
+                            <td>
+                                {% with compra=m.compras.last %}
+                                    {% if compra %}R$ {{ compra.preco|floatformat:2 }}{% else %}-{% endif %}
+                                {% endwith %}
+                            </td>
+                            <td>
+                                {% with compra=m.compras.last %}
+                                    {% if compra %}{{ compra.data_compra|date:"d/m/Y" }}{% else %}-{% endif %}
+                                {% endwith %}
+                            </td>
+                            <td class="actions">
+                                <button class="btn btn-sm btn-editar" onclick="editarMateria({{ m.id }})">✏️</button>
+                                <button class="btn btn-sm btn-excluir" onclick="excluirMateria({{ m.id }})">🗑️</button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center">Nenhuma matéria-prima cadastrada</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
 </div>
+
+<!-- Modal Produto -->
+<div id="modal-produto" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="fecharModalProduto()">&times;</span>
+        <h3 id="titulo-modal-produto">Editar Produto</h3>
+
+        <form id="form-produto">
+            <input type="hidden" id="produto-id">
+
+            <div class="form-group">
+                <label for="produto-nome">Nome:</label>
+                <input type="text" id="produto-nome" required>
+            </div>
+
+            <div class="form-group">
+                <label for="produto-categoria">Categoria:</label>
+                <select id="produto-categoria" required>
+                    <option value="LACO">Laço</option>
+                    <option value="TIARA">Tiara</option>
+                    <option value="FAIXA">Faixa</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="produto-estoque">Quantidade em Estoque:</label>
+                <input type="number" id="produto-estoque" min="0" required>
+            </div>
+
+            <div class="form-group">
+                <label for="produto-valor-venda">Valor de Venda (R$):</label>
+                <input type="number" id="produto-valor-venda" step="0.01" min="0">
+            </div>
+
+            <div class="modal-buttons">
+                <button type="button" class="btn btn-secondary" onclick="fecharModalProduto()">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Salvar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Matéria-Prima -->
+<div id="modal-materia" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="fecharModalMateria()">&times;</span>
+        <h3 id="titulo-modal-materia">Editar Matéria-Prima</h3>
+
+        <form id="form-materia">
+            <input type="hidden" id="materia-id">
+
+            <div class="form-group">
+                <label for="materia-nome">Nome:</label>
+                <input type="text" id="materia-nome" required>
+            </div>
+
+            <div class="form-group">
+                <label for="materia-categoria">Categoria:</label>
+                <select id="materia-categoria" required>
+                    <option value="FITA">Fita</option>
+                    <option value="LINHA">Linha</option>
+                    <option value="ENFEITE">Enfeite</option>
+                    <option value="PRESILHA">Presilha</option>
+                    <option value="ARCO">Arco</option>
+                    <option value="OUTROS">Outros</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="materia-especificacao">Especificação:</label>
+                <input type="text" id="materia-especificacao" required>
+            </div>
+
+            <div class="form-group">
+                <label for="materia-cor">Cor:</label>
+                <input type="text" id="materia-cor">
+            </div>
+
+            <div class="modal-buttons">
+                <button type="button" class="btn btn-secondary" onclick="fecharModalMateria()">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Salvar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+
 {% block scripts %}
-<!-- Dados dos materiais para JavaScript -->
 <link rel="stylesheet" href="{% static 'css/estoque.css' %}">
 <script src="{% static 'js/estoque.js' %}"></script>
 {% endblock %}
