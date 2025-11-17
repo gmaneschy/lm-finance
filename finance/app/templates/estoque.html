@@ -1,27 +1,48 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
 {% load static %}
 {% block title %}Sistema Financeiro - Estoque{% endblock %}
 {% block content %}
 
 
-<h2>Estoque Provisório</h2>
+<div class="page">
+  <h2>Estoque</h2>
 
-<table border="1">
-  <tr>
-    <th>Produto</th>
-    <th>Qtd</th>
-    <th>Valor Unitário</th>
-    <th>Valor Total</th>
-  </tr>
-  {% for e in estoques %}
-  <tr>
-    <td>{{ e.produto.nome }}</td>
-    <td>{{ e.quantidade_produto }}</td>
-    <td>R$ {{ e.valor_produto }}</td>
-    <td>R$ {{ e.produto_total }}</td>
-  </tr>
-  {% endfor %}
-</table>
-
+  <div class="estoque-table-wrapper">
+    <table id="estoque-table">
+      <thead>
+        <tr>
+          <th>Produto</th>
+          <th>Qtd em Estoque</th>
+          <th>Valor unit. (R$)</th>
+          <th>Valor total do produto (R$)</th>
+          <th>Matéria-prima total (R$)</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for e in estoques %}
+        <tr data-estoque-id="{{ e.id }}">
+          <td>{{ e.produto.nome }}</td>
+          <td class="editable quantidade">{{ e.quantidade_produto }}</td>
+          <td class="editable valor">{{ e.valor_produto }}</td>
+          <td class="produto_total">{{ e.produto_total }}</td>
+          <td class="materia_prima_total">{{ e.materia_prima_total }}</td>
+          <td>
+            <button class="btn salvar-btn">Salvar</button>
+            <button class="btn atualizar-btn">Atualizar</button>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6">Nenhum item em estoque.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% block scripts %}
+<!-- Dados dos materiais para JavaScript -->
+<link rel="stylesheet" href="{% static 'css/estoque.css' %}">
+<script src="{% static 'js/estoque.js' %}"></script>
+{% endblock %}
 
 {% endblock %}

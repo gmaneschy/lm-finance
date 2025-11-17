@@ -1,14 +1,14 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from .forms import MateriaPrimaForm, CompraMateriaPrimaForm
-from django.http import JsonResponse
-from .models import CompraMateriaPrima, CustoFixo
-from .models import Produto, MaterialUsado, Estoque
+from .models import CompraMateriaPrima, Estoque, Produto, Venda, Despesa, CustoFixo, MaterialUsado
 from .forms import ProdutoForm, MaterialUsadoForm, CustoFixoForm
 from django.forms import modelformset_factory
 from django.contrib import messages
+from django.http import JsonResponse, HttpResponseBadRequest
 from decimal import Decimal
-
-from django.forms import inlineformset_factory
+from django.views.decorators.csrf import csrf_exempt
+from django.utils import timezone
+from django.views.decorators.http import require_POST
 import json
 
 
@@ -192,14 +192,102 @@ def cadastrar_produto(request):
 
 
 def estoque(request):
-    estoques = Estoque.objects.all()
+    # atualiza caches/valores
+    estoques = Estoque.objects.select_related('produto').all()
     for e in estoques:
         e.atualizar_valores()
     return render(request, 'estoque.html', {'estoques': estoques})
 
 
 def financeiro(request):
-    return render(request, 'financeiro.html')
+    vendas = Venda.objects.all()
+    despesas = Despesa.objects.all()
+    produtos = Produto.objects.all()
+    custo_fixo = CustoFixo.objects.last()
+    context = {
+        'vendas': vendas,
+        'despesas': despesas,
+        'produtos': produtos,
+        'custo_fixo': custo_fixo,
+    }
+    return render(request, 'financeiro.html', context)
+
+
+@require_POST
+def api_update_estoque(request):
+    """
+    Recebe JSON: { "estoque_id": int, "quantidade_produto": int (opcional), "valor_produto": "12.50" (opcional) }
+    Retorna JSON com novo estado.
+    """
+    try:
+        payload = json.loads(request.body.decode('utf-8'))
+    except Exception:
+        return HttpResponseBadRequest("JSON inválido")
+
+    estoque_id = payload.get('estoque_id')
+    if not estoque_id:
+        return HttpResponseBadRequest("estoque_id required")
+
+    estoque = get_object_or_404(Estoque, id=estoque_id)
+
+    if 'quantidade_produto' in payload:
+        try:
+            estoque.quantidade_produto = int(payload['quantidade_produto'])
+        except Exception:
+            pass
+
+    if 'valor_produto' in payload:
+        try:
+            estoque.valor_produto = Decimal(str(payload['valor_produto']))
+        except Exception:
+            pass
+
+    estoque.atualizar_valores()
+    return JsonResponse({
+        'ok': True,
+        'estoque_id': estoque.id,
+        'quantidade_produto': estoque.quantidade_produto,
+        'valor_produto': str(estoque.valor_produto),
+        'produto_total': str(estoque.produto_total),
+        'materia_prima_total': str(estoque.materia_prima_total),
+    })
+
+
+@require_POST
+def api_create_venda(request):
+    try:
+        payload = json.loads(request.body.decode('utf-8'))
+    except Exception:
+        return HttpResponseBadRequest("JSON inválido")
+
+    produto_id = payload.get('produto_id')
+    quantidade = int(payload.get('quantidade', 1))
+    valor_unitario = Decimal(str(payload.get('valor_unitario', '0')))
+
+    produto = get_object_or_404(Produto, id=produto_id)
+    venda = Venda(produto=produto, quantidade=quantidade, valor_unitario=valor_unitario)
+    venda.save()
+    return JsonResponse({'ok': True, 'venda_id': venda.id})
+
+
+@require_POST
+def api_create_despesa(request):
+    try:
+        payload = json.loads(request.body.decode('utf-8'))
+    except Exception:
+        return HttpResponseBadRequest("JSON inválido")
+    descricao = payload.get('descricao', 'Despesa')
+    categoria = payload.get('categoria', 'OUTROS')
+    valor = Decimal(str(payload.get('valor', '0')))
+    data = payload.get('data')
+    despesa = Despesa(descricao=descricao, categoria=categoria, valor=valor)
+    if data:
+        from django.utils.dateparse import parse_date
+        parsed = parse_date(data)
+        if parsed:
+            despesa.data = parsed
+    despesa.save()
+    return JsonResponse({'ok': True, 'despesa_id': despesa.id})
 
 
 def autocomplete_marcas(request):
@@ -216,3 +304,63 @@ def autocomplete_fornecedores(request):
     fornecedores = CompraMateriaPrima.objects.values_list('fornecedor', flat=True).distinct()
     fornecedores_filtrados = [f for f in fornecedores if f and query in f.lower()]
     return JsonResponse(list(fornecedores_filtrados), safe=False)
+
+def api_financeiro_resumo(request):
+    """Retorna resumo financeiro (últimos 12 meses)"""
+    vendas = Venda.objects.all().order_by('data_venda')
+    despesas = Despesa.objects.all().order_by('data')
+    custo_fixo = CustoFixo.objects.last()
+
+    vendas_por_mes = {}
+    for v in vendas:
+        mes = v.data_venda.strftime("%Y-%m")
+        vendas_por_mes.setdefault(mes, Decimal(0))
+        vendas_por_mes[mes] += v.valor_total
+
+    despesas_por_mes = {}
+    for d in despesas:
+        mes = d.data.strftime("%Y-%m")
+        despesas_por_mes.setdefault(mes, Decimal(0))
+        despesas_por_mes[mes] += d.valor
+
+    return JsonResponse({
+        "vendas": [{"mes": k, "valor": float(v)} for k, v in vendas_por_mes.items()],
+        "despesas": [{"mes": k, "valor": float(v)} for k, v in despesas_por_mes.items()],
+        "custo_fixo": float(custo_fixo.custo_fixo_total) if custo_fixo else 0,
+    })
+
+
+@csrf_exempt
+def api_registrar_venda(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        produto_id = data.get('produto_id')
+        quantidade = int(data.get('quantidade', 1))
+        valor_unitario = Decimal(str(data.get('valor_unitario', 0)))
+
+        produto = Produto.objects.get(id=produto_id)
+        venda = Venda.objects.create(
+            produto=produto,
+            quantidade=quantidade,
+            valor_unitario=valor_unitario,
+            data_venda=timezone.now(),
+        )
+        return JsonResponse({"status": "ok", "venda_id": venda.id})
+    return JsonResponse({"error": "Método não permitido"}, status=405)
+
+
+@csrf_exempt
+def api_registrar_despesa(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        descricao = data.get('descricao')
+        categoria = data.get('categoria', 'OUTROS')
+        valor = Decimal(str(data.get('valor', 0)))
+        Despesa.objects.create(
+            descricao=descricao,
+            categoria=categoria,
+            valor=valor,
+            data=timezone.now()
+        )
+        return JsonResponse({"status": "ok"})
+    return JsonResponse({"error": "Método não permitido"}, status=405)

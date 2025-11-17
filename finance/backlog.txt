@@ -5,8 +5,7 @@ TELAS
 
     CADASTRO DE PRODUTO
         FORMULÁRIO DE CADASTRO DE PRODUTO
-           Corrigir Adicionar Material
-           Corrigir Custo Total Estimado
+
     ESTOQUE
         TABELA RESPONSIVA DE MATÉRIA PRIMA E PRODUTOS
 

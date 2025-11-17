@@ -1,11 +1,135 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
 {% load static %}
 {% block title %}Sistema Financeiro - Financeiro{% endblock %}
 {% block content %}
 
-
 <h2>Financeiro</h2>
 
+<div class="actions">
+  <button id="abrirModalVenda" class="btn salvar-btn">+ Registrar Venda</button>
+  <button id="abrirModalDespesa" class="btn atualizar-btn">+ Registrar Despesa</button>
+</div>
 
+<div class="financeiro-grid">
+  <!-- VENDAS -->
+  <div class="card">
+    <h3>📈 Vendas Recentes</h3>
+    <table id="tabela-vendas">
+      <thead>
+        <tr>
+          <th>Produto</th>
+          <th>Qtd</th>
+          <th>Unitário</th>
+          <th>Total</th>
+          <th>Data</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for v in vendas %}
+        <tr>
+          <td>{{ v.produto.nome }}</td>
+          <td>{{ v.quantidade }}</td>
+          <td>R$ {{ v.valor_unitario }}</td>
+          <td>R$ {{ v.valor_total }}</td>
+          <td>{{ v.data_venda }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5">Nenhuma venda</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 
+  <!-- DESPESAS -->
+  <div class="card">
+    <h3>💸 Despesas Recentes</h3>
+    <table id="tabela-despesas">
+      <thead>
+        <tr>
+          <th>Descrição</th>
+          <th>Categoria</th>
+          <th>Valor</th>
+          <th>Data</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for d in despesas %}
+        <tr>
+          <td>{{ d.descricao }}</td>
+          <td>{{ d.get_categoria_display }}</td>
+          <td>R$ {{ d.valor }}</td>
+          <td>{{ d.data }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4">Nenhuma despesa</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ========== MODAL VENDA ========== -->
+<div id="modalVenda" class="modal">
+  <div class="modal-content">
+    <span class="close" data-close="modalVenda">&times;</span>
+    <h3>Registrar Venda</h3>
+    <form id="formVenda" method="POST">
+      {% csrf_token %}
+      <label>Produto:</label>
+      <select name="produto_id" required>
+        <option value="">-- Selecione --</option>
+        {% for p in produtos %}
+        <option value="{{ p.id }}">{{ p.nome }}</option>
+        {% endfor %}
+      </select>
+
+      <label>Quantidade:</label>
+      <input type="number" name="quantidade" min="1" value="1" required>
+
+      <label>Valor Unitário (R$):</label>
+      <input type="number" name="valor_unitario" step="0.01" required>
+
+      <div class="modal-actions">
+        <button type="submit" class="btn salvar-btn">Salvar</button>
+        <button type="button" class="btn cancelar-btn" data-close="modalVenda">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ========== MODAL DESPESA ========== -->
+<div id="modalDespesa" class="modal">
+  <div class="modal-content">
+    <span class="close" data-close="modalDespesa">&times;</span>
+    <h3>Registrar Despesa</h3>
+    <form id="formDespesa" method="POST">
+      {% csrf_token %}
+      <label>Descrição:</label>
+      <input type="text" name="descricao" required>
+
+      <label>Categoria:</label>
+      <select name="categoria">
+        <option value="CUSTO_FIXO">Custo Fixo</option>
+        <option value="CUSTO_VARIAVEL">Custo Variável</option>
+        <option value="OUTROS">Outros</option>
+      </select>
+
+      <label>Valor (R$):</label>
+      <input type="number" name="valor" step="0.01" required>
+
+      <label>Data:</label>
+      <input type="date" name="data" value="{{ now|date:'Y-m-d' }}">
+
+      <div class="modal-actions">
+        <button type="submit" class="btn salvar-btn">Salvar</button>
+        <button type="button" class="btn cancelar-btn" data-close="modalDespesa">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% block scripts %}
+<link rel="stylesheet" href="{% static 'css/financeiro.css' %}">
+<script src="{% static 'js/financeiro.js' %}"></script>
+{% endblock %}
 {% endblock %}

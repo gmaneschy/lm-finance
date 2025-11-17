@@ -30,4 +30,12 @@ urlpatterns = [
     path('templates/financeiro/', views.financeiro, name='financeiro'),
     path('templates/estoque/', views.estoque, name='estoque'),
 
+    # endpoints AJAX / API simples
+    path('api/estoque/update/', views.api_update_estoque, name='api_update_estoque'),
+    path('api/venda/create/', views.api_create_venda, name='api_create_venda'),
+    path('api/despesa/create/', views.api_create_despesa, name='api_create_despesa'),
+
+    path('api/financeiro/resumo/', views.api_financeiro_resumo, name='api_financeiro_resumo'),
+    path('api/financeiro/venda/', views.api_registrar_venda, name='api_registrar_venda'),
+    path('api/financeiro/despesa/', views.api_registrar_despesa, name='api_registrar_despesa'),
 ]

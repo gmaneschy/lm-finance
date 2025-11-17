@@ -141,3 +141,41 @@ class Estoque(models.Model):
 
     def __str__(self):
         return f"Estoque de {self.produto.nome}"
+
+class Venda(models.Model):
+    produto = models.ForeignKey('Produto', on_delete=models.PROTECT, related_name='vendas')
+    quantidade = models.PositiveIntegerField(default=1)
+    valor_unitario = models.DecimalField(max_digits=10, decimal_places=2)
+    valor_total = models.DecimalField(max_digits=12, decimal_places=2)
+    data_venda = models.DateField(default=timezone.now)
+    observacao = models.CharField(max_length=200, blank=True, null=True)
+
+    def save(self, *args, **kwargs):
+        self.valor_total = (self.valor_unitario or 0) * (self.quantidade or 0)
+        super().save(*args, **kwargs)
+        # atualiza estoque associado se existir
+        try:
+            estoque = self.produto.estoque
+            estoque.quantidade_produto = max(0, estoque.quantidade_produto - self.quantidade)
+            estoque.atualizar_valores()
+        except Exception:
+            pass
+
+    def __str__(self):
+        return f"Venda: {self.produto.nome} - {self.quantidade}x ({self.data_venda})"
+
+
+class Despesa(models.Model):
+    CATEGORIA = [
+        ('CUSTO_FIXO', 'Custo Fixo'),
+        ('CUSTO_VARIAVEL', 'Custo Variável'),
+        ('OUTROS', 'Outros'),
+    ]
+    descricao = models.CharField(max_length=150)
+    categoria = models.CharField(max_length=30, choices=CATEGORIA, default='OUTROS')
+    valor = models.DecimalField(max_digits=12, decimal_places=2)
+    data = models.DateField(default=timezone.now)
+    recorrente = models.BooleanField(default=False)  # por ex. mensal
+
+    def __str__(self):
+        return f"{self.descricao} - R$ {self.valor} ({self.data})"
