@@ -21,11 +21,12 @@
             <div class="card-value">R$ {{ valor_total_produtos }}</div>
         </div>
         <div class="card small">
-            <div class="card-title">Valor Estoque Matérias</div>
+            <div class="card-title">Valor Estoque Matérias-Primas</div>
             <div class="card-value">R$ {{ valor_total_materias }}</div>
         </div>
     </div>
-
+</div>
+<div class="coluna">
     <!-- Container das Tabelas Lado a Lado -->
     <div class="tabelas-container">
         <!-- Tabela de Produtos -->
@@ -34,7 +35,6 @@
                 <h3>🎀 Produtos</h3>
                 <div class="panel-actions">
                     <input type="text" id="pesquisa-produto" class="mini-search" placeholder="Pesquisar produto...">
-                    <button class="btn btn-primary" onclick="abrirModalNovoProduto()">+ Novo Produto</button>
                 </div>
             </header>
 
@@ -48,7 +48,7 @@
                             <th>Custo Unit.</th>
                             <th>Valor Venda</th>
                             <th>Valor Total</th>
-                            <th>Ações</th>
+                            <th class="actions-header">Ações</th>
                         </tr>
                     </thead>
                     <tbody id="tbody-produtos">
@@ -65,9 +65,11 @@
                                 {% widthratio p.custo_total 1 p.quantidade_em_estoque as valor_total %}
                                 R$ {{ valor_total|floatformat:2 }}
                             </td>
-                            <td class="actions">
-                                <button class="btn btn-sm btn-editar" onclick="editarProduto({{ p.id }})">✏️</button>
-                                <button class="btn btn-sm btn-excluir" onclick="excluirProduto({{ p.id }})">🗑️</button>
+                            <td class="actions-cell">
+                                <div class="actions">
+                                    <button class="btn btn-sm btn-editar" onclick="editarProduto({{ p.id }})">✏️</button>
+                                    <button class="btn btn-sm btn-excluir" onclick="excluirProduto({{ p.id }})">🗑️</button>
+                                </div>
                             </td>
                         </tr>
                         {% empty %}
@@ -86,7 +88,6 @@
                 <h3>🧵 Matérias-Primas</h3>
                 <div class="panel-actions">
                     <input type="text" id="pesquisa-materia" class="mini-search" placeholder="Pesquisar matéria-prima...">
-                    <button class="btn btn-primary" onclick="abrirModalNovaMateria()">+ Nova Matéria</button>
                 </div>
             </header>
 
@@ -100,7 +101,7 @@
                             <th>Cor</th>
                             <th>Último Preço</th>
                             <th>Data Compra</th>
-                            <th>Ações</th>
+                            <th class="actions-header">Ações</th>
                         </tr>
                     </thead>
                     <tbody id="tbody-materias">
@@ -120,9 +121,11 @@
                                     {% if compra %}{{ compra.data_compra|date:"d/m/Y" }}{% else %}-{% endif %}
                                 {% endwith %}
                             </td>
-                            <td class="actions">
-                                <button class="btn btn-sm btn-editar" onclick="editarMateria({{ m.id }})">✏️</button>
-                                <button class="btn btn-sm btn-excluir" onclick="excluirMateria({{ m.id }})">🗑️</button>
+                            <td class="actions-cell">
+                                <div class="actions">
+                                    <button class="btn btn-sm btn-editar" onclick="editarMateria({{ m.id }})">✏️</button>
+                                    <button class="btn btn-sm btn-excluir" onclick="excluirMateria({{ m.id }})">🗑️</button>
+                                </div>
                             </td>
                         </tr>
                         {% empty %}
@@ -135,7 +138,6 @@
             </div>
         </section>
     </div>
-</div>
 
 <!-- Modal Produto -->
 <div id="modal-produto" class="modal">
@@ -226,6 +228,8 @@
 
 {% block scripts %}
 <link rel="stylesheet" href="{% static 'css/estoque.css' %}">
+<link rel="stylesheet" href="{% static 'css/global.css' %}">
+
 <script src="{% static 'js/estoque.js' %}"></script>
 {% endblock %}
 

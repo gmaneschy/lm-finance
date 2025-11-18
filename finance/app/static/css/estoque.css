@@ -1,15 +1,19 @@
 .estoque-page {
-    padding: 20px;
+    display: flex;
+    flex-direction: column;
 }
 
 .cards-row {
+    width: 60%;
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
     gap: 15px;
-    margin-bottom: 30px;
+    margin-bottom: 15px;
+    flex-shrink: 0;
 }
 
 .card {
+    border: 2px solid black;
     background: white;
     padding: 20px;
     border-radius: 10px;
@@ -18,9 +22,8 @@
 }
 
 .card-title {
-    font-size: 14px;
-    color: #666;
-    margin-bottom: 10px;
+    font-size: 16px;
+    color: black;
 }
 
 .card-value {
@@ -29,14 +32,27 @@
     color: #333;
 }
 
+.tabelas-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    width: 100%;
+}
+
+.coluna {
+    width: 100%;
+}
 
 .panel {
     background: white;
     border-radius: 10px;
-    padding: 20px;
-    margin-bottom: 30px;
+    border: 2px solid black;
+    padding: 10px;
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
 }
+
 
 .panel-header {
     display: flex;
@@ -53,9 +69,33 @@
 
 .mini-search {
     padding: 8px 12px;
-    border: 1px solid #ddd;
+    border: 1px solid black;
     border-radius: 5px;
     width: 200px;
+}
+
+.table-wrap {
+    overflow: hidden;
+    border: 1px solid black;
+    position: relative;
+}
+
+.table-wrap:hover {
+    overflow-y: auto;
+}
+
+.table-wrap::-webkit-scrollbar {
+    width: 6px;
+}
+.table-wrap::-webkit-scrollbar-thumb {
+    background: transparent;
+    border-radius: 3px;
+}
+.table-wrap:hover::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+}
+.table-wrap:hover::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
 }
 
 .table {
@@ -67,12 +107,26 @@
 .table td {
     padding: 12px;
     text-align: left;
-    border-bottom: 1px solid #eee;
+    border: 1px solid gray;
+    white-space: nowrap;
 }
 
 .table th {
     background: #f8f9fa;
     font-weight: 600;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.actions-header {
+    width: 120px;
+    text-align: center;
+}
+
+.actions-cell {
+    padding: 8px !important;
+    text-align: center;
 }
 
 .badge {
@@ -100,14 +154,16 @@
 .actions {
     display: flex;
     gap: 5px;
+    justify-content: center;
+    align-items: center;
 }
 
 .btn {
-    padding: 8px 16px;
+    padding: 6px 12px;
     border: none;
     border-radius: 5px;
     cursor: pointer;
-    font-size: 14px;
+    font-size: 12px;
     text-decoration: none;
     display: inline-block;
 }
@@ -141,20 +197,17 @@
     display: none;
     position: fixed;
     z-index: 1000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
+    inset: 0;
     background: rgba(0,0,0,0.5);
 }
 
 .modal-content {
+    border: 2px solid black;
     background: white;
     margin: 5% auto;
     padding: 20px;
     border-radius: 10px;
-    width: 90%;
-    max-width: 500px;
+    width: 20%;
     position: relative;
 }
 
@@ -166,7 +219,6 @@
     cursor: pointer;
     color: #aaa;
 }
-
 .close:hover {
     color: #000;
 }
@@ -174,22 +226,19 @@
 .form-group {
     margin-bottom: 15px;
 }
-
 .form-group label {
     display: block;
     margin-bottom: 5px;
     font-weight: 500;
 }
-
 .form-group input,
 .form-group select,
 .form-group textarea {
-    width: 100%;
-    padding: 8px 12px;
-    border: 1px solid #ddd;
+    width: 95%;
+    padding: 8px;
+    border: 1px solid black;
     border-radius: 5px;
     font-size: 14px;
-    box-sizing: border-box;
 }
 
 .modal-buttons {
@@ -203,4 +252,11 @@
     text-align: center;
     color: #666;
     font-style: italic;
+}
+
+@media (max-width: 1200px) {
+    .tabelas-container {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
 }

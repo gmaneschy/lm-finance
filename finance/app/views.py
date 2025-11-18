@@ -12,9 +12,6 @@ from django.views.decorators.csrf import csrf_exempt
 
 
 # Create your views here.
-def index(request):
-    return render(request, 'index.html')
-
 def registradora(request):
     form_mp = MateriaPrimaForm(request.POST or None)
     form_compra = CompraMateriaPrimaForm(request.POST or None)

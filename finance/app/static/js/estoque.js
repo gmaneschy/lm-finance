@@ -52,14 +52,6 @@ function inicializarPesquisas() {
 }
 
 // ==================== PRODUTOS ====================
-
-function abrirModalNovoProduto() {
-    document.getElementById('titulo-modal-produto').textContent = 'Novo Produto';
-    document.getElementById('form-produto').reset();
-    document.getElementById('produto-id').value = '';
-    document.getElementById('modal-produto').style.display = 'block';
-}
-
 function editarProduto(id) {
     fetch(`/api/produtos/${id}/`)
         .then(response => {
@@ -148,14 +140,6 @@ function fecharModalProduto() {
 }
 
 // ==================== MATÉRIAS-PRIMAS ====================
-
-function abrirModalNovaMateria() {
-    document.getElementById('titulo-modal-materia').textContent = 'Nova Matéria-Prima';
-    document.getElementById('form-materia').reset();
-    document.getElementById('materia-id').value = '';
-    document.getElementById('modal-materia').style.display = 'block';
-}
-
 function editarMateria(id) {
     fetch(`/api/materias/${id}/`)
         .then(response => {

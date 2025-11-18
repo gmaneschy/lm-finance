@@ -22,8 +22,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
 
     # Páginas principais
-    path('', views.index, name='index'),
-    path('templates/index/', views.index, name='index'),
+    path('', views.estoque, name='estoque'),
     path('templates/registradora/', views.registradora, name='registradora'),
     path('autocomplete/marcas/', views.autocomplete_marcas, name='autocomplete_marcas'),
     path('autocomplete/fornecedores/', views.autocomplete_fornecedores, name='autocomplete_fornecedores'),

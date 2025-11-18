@@ -23,6 +23,7 @@
 
 /* ========== COLUNAS ========== */
 .coluna {
+    border: 2px solid black;
     background: white;
     padding: 20px;
     border-radius: 12px;
@@ -435,6 +436,7 @@ textarea {
 
 /* Limita colunas para não ultrapassar */
 .form-container {
+    padding-top: 2px;
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 20px;
