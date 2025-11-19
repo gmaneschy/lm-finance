@@ -69,6 +69,10 @@ class Produto(models.Model):
         total_materiais = sum([m.valor_total for m in self.materiais_usados.all()])
         return total_materiais + (self.custo_fixo_total or 0)
 
+    @property
+    def valor_total(self):
+        return self.custo_total * self.quantidade_em_estoque
+
 
 class MaterialUsado(models.Model):
     """

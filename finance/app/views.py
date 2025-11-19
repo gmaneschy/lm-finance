@@ -227,16 +227,22 @@ def estoque(request):
 def api_produto_detalhe(request, id):
     try:
         produto = Produto.objects.get(id=id)
+
+        valor_total = float(produto.custo_total or 0) * float(produto.quantidade_em_estoque or 0)
+
         return JsonResponse({
             'id': produto.id,
             'nome': produto.nome,
             'categoria': produto.categoria,
             'quantidade_em_estoque': produto.quantidade_em_estoque,
             'valor_venda': float(produto.valor_venda) if produto.valor_venda else None,
-            'custo_total': float(produto.custo_total) if produto.custo_total else 0
+            'custo_total': float(produto.custo_total) if produto.custo_total else 0,
+            'valor_total': valor_total
         })
+
     except Produto.DoesNotExist:
         return JsonResponse({'error': 'Produto não encontrado'}, status=404)
+
 
 
 @csrf_exempt
@@ -260,24 +266,6 @@ def api_produto_editar(request, id):
 
 
 @csrf_exempt
-def api_produto_novo(request):
-    if request.method == 'POST':
-        try:
-            data = json.loads(request.body)
-
-            produto = Produto.objects.create(
-                nome=data['nome'],
-                categoria=data['categoria'],
-                quantidade_em_estoque=data.get('quantidade_em_estoque', 0),
-                valor_venda=data.get('valor_venda')
-            )
-
-            return JsonResponse({'success': True, 'id': produto.id})
-        except Exception as e:
-            return JsonResponse({'error': str(e)}, status=400)
-
-
-@csrf_exempt
 def api_produto_excluir(request, id):
     if request.method == 'DELETE':
         try:
@@ -293,21 +281,38 @@ def api_produto_excluir(request, id):
 def api_materia_detalhe(request, id):
     try:
         materia = MateriaPrima.objects.get(id=id)
-        ultima_compra = materia.compras.last()
+        compra = materia.compras.last()
+
+        compra_data = None
+        if compra:
+            compra_data = {
+                'id': compra.id,
+                'preco': float(compra.preco) if compra.preco else 0,
+                'fornecedor': compra.fornecedor or "",
+                'unidade': compra.unidade,
+                'quantidade': (
+                    float(compra.unidade_em_cm)
+                    if compra.unidade == 'CM'
+                    else float(compra.unidade_em_quantidade)
+                ),
+                'sufixo': 'cm' if compra.unidade == 'CM' else 'un'
+            }
 
         return JsonResponse({
             'id': materia.id,
             'nome': materia.nome,
             'categoria': materia.categoria,
             'especificacao': materia.especificacao,
-            'cor': materia.cor,
-            'ultima_compra': {
-                'preco': float(ultima_compra.preco) if ultima_compra else None,
-                'data_compra': ultima_compra.data_compra.strftime('%d/%m/%Y') if ultima_compra else None
-            } if ultima_compra else None
+            'cor': materia.cor or "",
+            'compra': compra_data
         })
+
     except MateriaPrima.DoesNotExist:
         return JsonResponse({'error': 'Matéria-prima não encontrada'}, status=404)
+
+    except Exception as e:
+        print("ERRO API MATERIA DETALHE:", e)
+        return JsonResponse({'error': str(e)}, status=500)
 
 
 @csrf_exempt
@@ -326,24 +331,6 @@ def api_materia_editar(request, id):
             return JsonResponse({'success': True})
         except MateriaPrima.DoesNotExist:
             return JsonResponse({'error': 'Matéria-prima não encontrada'}, status=404)
-        except Exception as e:
-            return JsonResponse({'error': str(e)}, status=400)
-
-
-@csrf_exempt
-def api_materia_nova(request):
-    if request.method == 'POST':
-        try:
-            data = json.loads(request.body)
-
-            materia = MateriaPrima.objects.create(
-                nome=data['nome'],
-                categoria=data['categoria'],
-                especificacao=data['especificacao'],
-                cor=data.get('cor')
-            )
-
-            return JsonResponse({'success': True, 'id': materia.id})
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=400)
 

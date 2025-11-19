@@ -7,6 +7,7 @@ TELAS
         FORMULÁRIO DE CADASTRO DE PRODUTO
 
     ESTOQUE
-        TABELA RESPONSIVA DE MATÉRIA PRIMA E PRODUTOS
+        Corrigir relação css navbar-página
+
 
     FINANCEIRO

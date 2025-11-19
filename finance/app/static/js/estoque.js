@@ -113,27 +113,23 @@ function salvarProduto(e) {
 }
 
 function excluirProduto(id) {
-    if (confirm('Tem certeza que deseja excluir este produto?')) {
-        fetch(`/api/produtos/${id}/excluir/`, {
-            method: 'DELETE',
-            headers: {
-                'X-CSRFToken': getCSRFToken()
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                location.reload();
-            } else {
-                alert('Erro ao excluir produto: ' + (data.error || 'Erro desconhecido'));
-            }
-        })
-        .catch(error => {
-            console.error('Erro:', error);
-            alert('Erro ao excluir produto');
-        });
-    }
+    if (!confirm('Tem certeza que deseja excluir este produto?')) return;
+
+    fetch(`/api/produtos/${id}/excluir/`, {
+        method: 'DELETE',
+        headers: { 'X-CSRFToken': getCSRFToken() }
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            const linha = document.querySelector(`#tbody-produtos tr[data-id="${id}"]`);
+            if (linha) linha.remove();
+        } else {
+            alert('Erro ao excluir produto.');
+        }
+    });
 }
+
 
 function fecharModalProduto() {
     document.getElementById('modal-produto').style.display = 'none';
@@ -147,12 +143,19 @@ function editarMateria(id) {
             return response.json();
         })
         .then(materia => {
+
             document.getElementById('titulo-modal-materia').textContent = 'Editar Matéria-Prima';
             document.getElementById('materia-id').value = materia.id;
             document.getElementById('materia-nome').value = materia.nome;
             document.getElementById('materia-categoria').value = materia.categoria;
             document.getElementById('materia-especificacao').value = materia.especificacao;
             document.getElementById('materia-cor').value = materia.cor || '';
+
+            // agora os dados da compra completa estão disponíveis:
+            if (materia.compra) {
+                console.log("Dados da compra:", materia.compra);
+                // aqui você pode preencher mais campos se quiser
+            }
 
             document.getElementById('modal-materia').style.display = 'block';
         })
@@ -200,27 +203,23 @@ function salvarMateria(e) {
 }
 
 function excluirMateria(id) {
-    if (confirm('Tem certeza que deseja excluir esta matéria-prima?')) {
-        fetch(`/api/materias/${id}/excluir/`, {
-            method: 'DELETE',
-            headers: {
-                'X-CSRFToken': getCSRFToken()
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                location.reload();
-            } else {
-                alert('Erro ao excluir matéria-prima: ' + (data.error || 'Erro desconhecido'));
-            }
-        })
-        .catch(error => {
-            console.error('Erro:', error);
-            alert('Erro ao excluir matéria-prima');
-        });
-    }
+    if (!confirm('Tem certeza que deseja excluir esta matéria-prima?')) return;
+
+    fetch(`/api/materias/${id}/excluir/`, {
+        method: 'DELETE',
+        headers: { 'X-CSRFToken': getCSRFToken() }
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            const linha = document.querySelector(`#tbody-materias tr[data-id="${id}"]`);
+            if (linha) linha.remove();
+        } else {
+            alert('Erro ao excluir matéria-prima.');
+        }
+    });
 }
+
 
 function fecharModalMateria() {
     document.getElementById('modal-materia').style.display = 'none';

@@ -36,12 +36,10 @@ urlpatterns = [
     # API Produtos
     path('api/produtos/<int:id>/', views.api_produto_detalhe, name='api_produto_detalhe'),
     path('api/produtos/<int:id>/editar/', views.api_produto_editar, name='api_produto_editar'),
-    path('api/produtos/novo/', views.api_produto_novo, name='api_produto_novo'),
     path('api/produtos/<int:id>/excluir/', views.api_produto_excluir, name='api_produto_excluir'),
 
     # API Matérias-Primas
     path('api/materias/<int:id>/', views.api_materia_detalhe, name='api_materia_detalhe'),
     path('api/materias/<int:id>/editar/', views.api_materia_editar, name='api_materia_editar'),
-    path('api/materias/nova/', views.api_materia_nova, name='api_materia_nova'),
     path('api/materias/<int:id>/excluir/', views.api_materia_excluir, name='api_materia_excluir'),
 ]

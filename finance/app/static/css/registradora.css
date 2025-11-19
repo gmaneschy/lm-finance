@@ -29,7 +29,7 @@ h2 {
 /* Cada formulário ocupa metade da largura disponível */
 form {
     width: 420px; /* tamanho fixo para manter simetria */
-    height: 440px;
+    height: auto;
     background-color: #fff;
     border: 1px solid #ccc;
     border-radius: 6px;

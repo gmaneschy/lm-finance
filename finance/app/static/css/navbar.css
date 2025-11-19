@@ -122,12 +122,6 @@ nav {
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
 }
 
-/* Conteúdo principal */
-.content {
-    padding: 2rem;
-    margin: 0 auto;
-}
-
 /* Cards e containers */
 .card {
     background: white;

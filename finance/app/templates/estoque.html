@@ -62,13 +62,16 @@
                             <td>R$ {{ p.custo_total|floatformat:2 }}</td>
                             <td>R$ {{ p.valor_venda|floatformat:2|default:"-" }}</td>
                             <td class="valor-total">
-                                {% widthratio p.custo_total 1 p.quantidade_em_estoque as valor_total %}
-                                R$ {{ valor_total|floatformat:2 }}
+                                R$ {{ p.valor_total|floatformat:2 }}
                             </td>
                             <td class="actions-cell">
                                 <div class="actions">
-                                    <button class="btn btn-sm btn-editar" onclick="editarProduto({{ p.id }})">✏️</button>
-                                    <button class="btn btn-sm btn-excluir" onclick="excluirProduto({{ p.id }})">🗑️</button>
+                                    <button class="btn btn-sm btn-editar" onclick="editarProduto({{ p.id }})">
+                                    <span class="bxs--edit"></span>
+                                    </button>
+                                    <button class="btn btn-sm btn-excluir" onclick="excluirProduto({{ p.id }})">
+                                    <span class="mdi--trash"></span>
+                                    </button>
                                 </div>
                             </td>
                         </tr>
@@ -93,47 +96,69 @@
 
             <div class="table-wrap">
                 <table id="tabela-materias" class="table">
-                    <thead>
-                        <tr>
-                            <th>Nome</th>
-                            <th>Categoria</th>
-                            <th>Especificação</th>
-                            <th>Cor</th>
-                            <th>Último Preço</th>
-                            <th>Data Compra</th>
-                            <th class="actions-header">Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tbody-materias">
-                        {% for m in materias %}
-                        <tr data-id="{{ m.id }}">
-                            <td>{{ m.nome }}</td>
-                            <td><span class="badge categoria">{{ m.get_categoria_display }}</span></td>
-                            <td>{{ m.especificacao }}</td>
-                            <td>{{ m.cor|default:"-" }}</td>
-                            <td>
-                                {% with compra=m.compras.last %}
-                                    {% if compra %}R$ {{ compra.preco|floatformat:2 }}{% else %}-{% endif %}
-                                {% endwith %}
-                            </td>
-                            <td>
-                                {% with compra=m.compras.last %}
-                                    {% if compra %}{{ compra.data_compra|date:"d/m/Y" }}{% else %}-{% endif %}
-                                {% endwith %}
-                            </td>
-                            <td class="actions-cell">
-                                <div class="actions">
-                                    <button class="btn btn-sm btn-editar" onclick="editarMateria({{ m.id }})">✏️</button>
-                                    <button class="btn btn-sm btn-excluir" onclick="excluirMateria({{ m.id }})">🗑️</button>
-                                </div>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="7" class="text-center">Nenhuma matéria-prima cadastrada</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>Categoria</th>
+                        <th>Especificação</th>
+                        <th>Cor</th>
+                        <th>Qtd</th>
+                        <th>Unidade</th>
+                        <th>Preço</th>
+                        <th>Fornecedor</th>
+                        <th class="actions-header">Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="tbody-materias">
+                    {% for m in materias %}
+                    {% with compra=m.compras.last %}
+                    <tr data-id="{{ m.id }}">
+                        <td>{{ m.nome }}</td>
+                        <td><span class="badge categoria">{{ m.get_categoria_display }}</span></td>
+                        <td>{{ m.especificacao }}</td>
+                        <td>{{ m.cor|default:"-" }}</td>
+                        <td>
+                            {% if compra %}
+                                {% if compra.unidade == "CM" %}
+                                    {{ compra.unidade_em_cm }} cm
+                                {% else %}
+                                    {{ compra.unidade_em_quantidade }} un
+                                {% endif %}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if compra %}
+                                {% if compra.unidade == "CM" %}Centímetros{% else %}Unidades{% endif %}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if compra %}
+                                R$ {{ compra.preco|floatformat:2 }}
+                            {% else %}-{% endif %}
+                        </td>
+                        <td>{{ compra.fornecedor|default:"-" }}</td>
+                        <td class="actions-cell">
+                            <div class="actions">
+                                <button class="btn btn-sm btn-editar" onclick="editarMateria({{ m.id }})">
+                                    <span class="bxs--edit"></span>
+                                </button>
+                                <button class="btn btn-sm btn-excluir" onclick="excluirMateria({{ m.id }})">
+                                    <span class="mdi--trash"></span>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endwith %}
+                    {% empty %}
+                    <tr>
+                        <td colspan="10" class="text-center">Nenhuma matéria-prima cadastrada</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
                 </table>
             </div>
         </section>
@@ -224,7 +249,7 @@
     </div>
 </div>
 
-
+</div>
 
 {% block scripts %}
 <link rel="stylesheet" href="{% static 'css/estoque.css' %}">
