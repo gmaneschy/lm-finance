@@ -1,6 +1,5 @@
 {% extends 'base.html' %}
 {% load static %}
-
 {% block title %}Sistema Financeiro - Cadastro de Produto{% endblock %}
 {% block content %}
 <div class="cadastro-produto-container">
@@ -155,7 +154,6 @@
 
 <!-- Dados dos materiais para JavaScript -->
 <link rel="stylesheet" href="{% static 'css/cadastrar_produto.css' %}">
-<link rel="stylesheet" href="{% static 'css/global.css' %}">
 <script src="{% static 'js/cadastrar_produto.js' %}"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script id="materiais-data" type="application/json">{{ materiais_data_json|safe }}</script>

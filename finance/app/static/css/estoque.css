@@ -1,6 +1,8 @@
 .estoque-page {
     display: flex;
     flex-direction: column;
+    margin-top: 40px; /* Aumenta espaçamento logo abaixo do navbar */
+    align-items: center; /* Centraliza o conteúdo */
 }
 
 .cards-row {
@@ -8,8 +10,7 @@
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
     gap: 15px;
-    margin-bottom: 15px;
-    flex-shrink: 0;
+    margin: 15px auto 25px auto; /* Centraliza */
 }
 
 .card {
@@ -32,17 +33,30 @@
     color: #333;
 }
 
+.coluna {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
 .tabelas-container {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 20px;
-    width: 100%;
+    gap: 40px;
+    width: 80%; /* Faz com que ambas fiquem centralizadas */
+    justify-content: center;
 }
 
-.coluna {
-    width: 100%;
+/* Espaçamento lateral em cada tabela */
+.tabelas-container section:first-child {
+    margin-left: 40px;   /* Espaço à esquerda da primeira tabela */
 }
 
+.tabelas-container section:last-child {
+    margin-right: 40px;  /* Espaço à direita da segunda tabela */
+}
+
+/* Painéis das tabelas */
 .panel {
     background: white;
     border-radius: 10px;
@@ -55,6 +69,7 @@
 }
 
 
+/* Cabeçalho, tabelas e demais estilos permanecem iguais */
 .panel-header {
     display: flex;
     justify-content: space-between;
@@ -65,7 +80,6 @@
 .panel-actions {
     display: flex;
     gap: 10px;
-    align-items: center;
 }
 
 .mini-search {
@@ -74,16 +88,13 @@
     border-radius: 5px;
     width: 200px;
 }
-
 .table-wrap {
-    max-height: 500px;  /* suficiente para 10 linhas */
-    overflow-y: auto;   /* scroll interno */
-    overflow-x: hidden;
+    max-height: 500px;
+    overflow-y: auto;
     border: 1px solid black;
-    position: relative;
 }
 
-/* opcional: scroll mais elegante */
+/* Scroll visual */
 .table-wrap::-webkit-scrollbar {
     width: 6px;
 }
@@ -95,19 +106,14 @@
     background: #a8a8a8;
 }
 
-.table-wrap:hover::-webkit-scrollbar-thumb:hover {
-    background: #a8a8a8;
-}
-
+/* Tabela */
 .table {
     width: 100%;
     border-collapse: collapse;
 }
-
 .table th,
 .table td {
     padding: 12px;
-    text-align: left;
     border: 1px solid gray;
     white-space: nowrap;
 }
@@ -118,7 +124,6 @@
     position: sticky;
     top: 0;
     z-index: 10;
-    top: -1px;
 }
 
 .actions-header {
@@ -284,9 +289,15 @@
     font-style: italic;
 }
 
+/* Responsividade */
 @media (max-width: 1200px) {
     .tabelas-container {
         grid-template-columns: 1fr;
-        gap: 15px;
+        width: 95%;
+    }
+
+    .tabelas-container section:first-child,
+    .tabelas-container section:last-child {
+        margin: 0;
     }
 }
