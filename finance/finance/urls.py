@@ -26,9 +26,7 @@ urlpatterns = [
     path('templates/registradora/', views.registradora, name='registradora'),
     path('autocomplete/marcas/', views.autocomplete_marcas, name='autocomplete_marcas'),
     path('autocomplete/fornecedores/', views.autocomplete_fornecedores, name='autocomplete_fornecedores'),
-
     path('templates/cadastrar_produto/', views.cadastrar_produto, name='cadastrar_produto'),
-    path('templates/financeiro/', views.financeiro, name='financeiro'),
 
     # Página de Estoque
     path('templates/estoque/', views.estoque, name='estoque'),
@@ -42,4 +40,9 @@ urlpatterns = [
     path('api/materias/<int:id>/', views.api_materia_detalhe, name='api_materia_detalhe'),
     path('api/materias/<int:id>/editar/', views.api_materia_editar, name='api_materia_editar'),
     path('api/materias/<int:id>/excluir/', views.api_materia_excluir, name='api_materia_excluir'),
+
+    path('templates/vendas/', views.vendas, name='vendas'),
+    path('api/salvar_venda/', views.api_salvar_venda, name='api_salvar_venda'),  # Nova rota
+    path('templates/financeiro/', views.financeiro, name='financeiro'),
+
 ]

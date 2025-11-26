@@ -1,0 +1,310 @@
+/* =========================================
+   Estilo Base
+   ========================================= */
+
+/* 1. IMPEDE O SCROLL DA PÁGINA E FIXA A ALTURA */
+html, body {
+    height: 100%; /* Garante que ocupe 100% da viewport */
+    margin: 0;
+}
+
+body {
+    background-color: #f8f9fa;
+    font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    color: #333;
+    /* overflow: hidden é movido para o #content-wrap se for usar base.html */
+    /* Para este arquivo, trataremos o overflow no .vendas-container e .vendas-content */
+    padding-bottom: 0; /* Remove padding de rodapé, pois a altura é fixa */
+}
+
+.titulo {
+    text-align: center;
+    margin-bottom: 20px; /* Reduzi um pouco para economizar espaço vertical */
+    font-weight: 700;
+    color: black;
+    flex-shrink: 0;
+}
+
+/* =========================================
+   LAYOUT PRINCIPAL: Lado a Lado (Desktop)
+   ========================================= */
+
+/* Container que centraliza o conteúdo horizontalmente */
+.vendas-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    /* 1. Impede o scroll externo e define a altura máxima */
+    height: calc(100vh - 100px); /* 100vh menos a altura da navbar (aprox. 70px) */
+    overflow: hidden;
+}
+
+/* Container Flexbox para Produtos e Carrinho */
+.vendas-content {
+    width: 95%; /* Aumentei a largura um pouco */
+    max-width: 1400px;
+    margin: 0 auto;
+    /* 2. Altura fixa para os dois divs laterais e flex-grow para ocupar o restante do .vendas-container */
+    height: 85%; /* Ocupa to do o espaço vertical restante do .vendas-container */
+    flex-grow: 1;
+
+    /* Configuração Flexbox para LADO A LADO */
+    display: flex;
+    gap: 20px;
+    align-items: stretch; /* Garante que as colunas tenham a mesma altura */
+}
+
+/* Seções (Produtos e Carrinho) */
+.product-section, .cart-section {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.product-section {
+    flex: 7;
+    min-width: 0;
+}
+
+.cart-section {
+    flex: 3;
+    min-width: 350px; /* Garante uma largura mínima ligeiramente maior */
+}
+
+/* =========================================
+   Estilização dos Cards Principais
+   ========================================= */
+.card {
+    border: 2px solid black;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    overflow: hidden;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 85%;
+    max-height: 100%;
+}
+
+.card-header {
+    padding: 2px 10px;
+    background-color: #f8f9fa;
+    border-bottom: 2px solid black;
+    color: black;
+    flex-shrink: 0;
+}
+
+.card-body {
+    padding: 20px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    /* Ajuste: padding-bottom 0 para o .checkout-area se juntar à borda inferior */
+    /* padding-bottom: 0; */
+    overflow: auto;
+}
+
+/* =========================================
+   Coluna Esquerda: Produtos (SCROLL AQUI)
+   ========================================= */
+.form-input {
+    border-radius: 5px;
+    padding: 10px 15px;
+    border: 1px solid black;
+    width: 100%;
+    margin-bottom: 15px;
+    box-sizing: border-box;
+    flex-shrink: 0; /* Impede que o input encolha */
+}
+
+/* Lista de Produtos (Grid) */
+#listaProdutos {
+    flex-grow: 1; /* Ocupa to do o espaço vertical disponível (flexbox) */
+    overflow-y: auto; /* SCROLL HABILITADO AQUI */
+    padding-right: 5px;
+    margin-top: 5px;
+    padding-bottom: 15px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 15px;
+}
+
+/* ... (Estilos de produto-card, etc., inalterados) ... */
+.produto-card {
+    border: 1px solid #ced4da;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    margin-top: 2px;
+}
+
+.produto-card:hover {
+    border-color: #1976d2;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* =========================================
+   Coluna Direita: Carrinho (SCROLL AQUI)
+   ========================================= */
+
+/* Container da tabela com rolagem */
+.table-wrap {
+    min-height: 150px;
+    flex-grow: 1; /* Ocupa to do o espaço vertical acima do rodapé */
+    overflow-y: auto; /* SCROLL HABILITADO AQUI */
+    border: 1px solid black;
+    border-radius: 5px;
+    margin-bottom: 10px; /* Reduzi a margem antes do HR/Checkout */
+}
+
+/* Tabela do carrinho */
+.table-carrinho {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table-carrinho th,
+.table-carrinho td {
+    padding: 10px;
+    border-bottom: 1px solid #f1f3f5;
+    vertical-align: middle;
+    text-align: left;
+}
+
+.table-carrinho th {
+    background: #f8f9fa;
+    font-weight: 600;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+/* Input de quantidade na tabela */
+.qtd-input {
+    width: 60px;
+    text-align: center;
+    border-radius: 5px;
+    border: 1px solid black;
+    padding: 4px;
+}
+
+/* Botão de remover */
+.btn-remove {
+    background-color: #dc3545;
+    color: white;
+    border: 1px solid black;
+    border-radius: 5px;
+    padding: 5px 8px;
+    cursor: pointer;
+    font-size: 0.8rem;
+}
+
+/* --- Área de Finalização (Checkout) --- */
+.checkout-area {
+    flex-shrink: 0; /* Não encolhe */
+    padding: 15px 0 20px 0; /* Padding inferior para afastar do final do card */
+    border-top: 1px solid #e9ecef;
+}
+
+.total-display {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.total-display h2 {
+    font-size: 2rem;
+    color: #2e7d32;
+    font-weight: bold;
+}
+
+/* Inputs e Selects */
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+
+.form-input-select {
+    width: 100%;
+    padding: 8px;
+    border-radius: 5px;
+    border: 1px solid black;
+    box-sizing: border-box;
+    height: 38px;
+}
+
+/* Botão Finalizar Venda */
+.btn-finalizar {
+    width: 100%;
+    padding: 15px;
+    font-weight: 700;
+    font-size: 1.1rem;
+    background: #2e7d32;
+    color: white;
+    border: 2px solid black;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.2s;
+    margin-top: 10px;
+}
+
+.btn-finalizar:hover {
+    background: #1e5921;
+    transform: translateY(-1px);
+}
+
+/* =========================================
+   Responsividade (Mobile)
+   ========================================= */
+
+@media (max-width: 767.98px) {
+    /* Libera a altura do body no mobile para permitir o scroll natural */
+    body {
+        overflow-y: auto;
+    }
+
+    .vendas-container {
+        height: auto;
+        overflow: visible;
+        padding-bottom: 30px; /* Garante padding no final da página mobile */
+    }
+
+    .vendas-content {
+        /* Mudar para empilhamento vertical */
+        flex-direction: column;
+        min-height: auto;
+        gap: 20px;
+        height: auto; /* Libera altura no mobile */
+    }
+
+    .product-section, .cart-section {
+        width: 100%;
+        flex: none;
+        height: auto;
+    }
+
+    /* Altura fixa para scroll interno no mobile para evitar que o card fique gigante */
+    #listaProdutos {
+        max-height: 40vh;
+        min-height: 250px;
+        padding-right: 15px; /* Adiciona padding para o scrollbar não ficar colado */
+    }
+
+    .table-wrap {
+        max-height: 30vh;
+        min-height: 150px;
+    }
+}

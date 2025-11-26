@@ -146,40 +146,63 @@ class Estoque(models.Model):
     def __str__(self):
         return f"Estoque de {self.produto.nome}"
 
-class Venda(models.Model):
-    produto = models.ForeignKey('Produto', on_delete=models.PROTECT, related_name='vendas')
-    quantidade = models.PositiveIntegerField(default=1)
-    valor_unitario = models.DecimalField(max_digits=10, decimal_places=2)
-    valor_total = models.DecimalField(max_digits=12, decimal_places=2)
-    data_venda = models.DateField(default=timezone.now)
-    observacao = models.CharField(max_length=200, blank=True, null=True)
 
-    def save(self, *args, **kwargs):
-        self.valor_total = (self.valor_unitario or 0) * (self.quantidade or 0)
-        super().save(*args, **kwargs)
-        # atualiza estoque associado se existir
-        try:
-            estoque = self.produto.estoque
-            estoque.quantidade_produto = max(0, estoque.quantidade_produto - self.quantidade)
-            estoque.atualizar_valores()
-        except Exception:
-            pass
+# models.py (Adicione/Substitua ao final do arquivo)
 
-    def __str__(self):
-        return f"Venda: {self.produto.nome} - {self.quantidade}x ({self.data_venda})"
-
-
-class Despesa(models.Model):
-    CATEGORIA = [
-        ('CUSTO_FIXO', 'Custo Fixo'),
-        ('CUSTO_VARIAVEL', 'Custo Variável'),
+class LancamentoFinanceiro(models.Model):
+    TIPO_LANCAMENTO = [
+        ('ENTRADA', 'Entrada (Receita)'),
+        ('SAIDA', 'Saída (Despesa)'),
+    ]
+    CATEGORIAS = [
+        ('VENDA', 'Venda de Produtos'),
+        ('COMPRA_MATERIAL', 'Compra de Matéria Prima'),
+        ('CUSTO_FIXO', 'Custos Fixos (Luz, MEI, etc)'),
         ('OUTROS', 'Outros'),
     ]
-    descricao = models.CharField(max_length=150)
-    categoria = models.CharField(max_length=30, choices=CATEGORIA, default='OUTROS')
+
+    tipo = models.CharField(max_length=10, choices=TIPO_LANCAMENTO)
+    categoria = models.CharField(max_length=20, choices=CATEGORIAS)
+    descricao = models.CharField(max_length=200)
     valor = models.DecimalField(max_digits=12, decimal_places=2)
     data = models.DateField(default=timezone.now)
-    recorrente = models.BooleanField(default=False)  # por ex. mensal
+
+    # Campo opcional para ligar uma venda a esse lançamento financeiro
+    venda_origem = models.OneToOneField('Venda', on_delete=models.SET_NULL, null=True, blank=True,
+                                        related_name='lancamento_financeiro')
 
     def __str__(self):
-        return f"{self.descricao} - R$ {self.valor} ({self.data})"
+        return f"{self.get_tipo_display()} - {self.descricao} - R$ {self.valor}"
+
+
+class Venda(models.Model):
+    METODOS_PAGAMENTO = [
+        ('DINHEIRO', 'Dinheiro'),
+        ('PIX', 'Pix'),
+        ('CARTAO_CREDITO', 'Cartão de Crédito'),
+        ('CARTAO_DEBITO', 'Cartão de Débito'),
+    ]
+
+    data_venda = models.DateTimeField(default=timezone.now)
+    valor_total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    metodo_pagamento = models.CharField(max_length=20, choices=METODOS_PAGAMENTO, default='PIX')
+    observacao = models.TextField(blank=True, null=True)
+    cliente_nome = models.CharField(max_length=100, blank=True, null=True, default="Cliente Balcão")
+
+    def __str__(self):
+        return f"Venda #{self.id} - {self.data_venda.strftime('%d/%m/%Y')} - R$ {self.valor_total}"
+
+
+class ItemVenda(models.Model):
+    venda = models.ForeignKey(Venda, related_name='itens', on_delete=models.CASCADE)
+    produto = models.ForeignKey(Produto, on_delete=models.PROTECT)  # Se deletar produto, não deleta a venda histórica
+    quantidade = models.PositiveIntegerField(default=1)
+    valor_unitario = models.DecimalField(max_digits=10, decimal_places=2)
+    subtotal = models.DecimalField(max_digits=10, decimal_places=2)
+
+    def save(self, *args, **kwargs):
+        self.subtotal = self.quantidade * self.valor_unitario
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.quantidade}x {self.produto.nome} (Venda #{self.venda.id})"

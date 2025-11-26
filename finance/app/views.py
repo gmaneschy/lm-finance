@@ -1,6 +1,9 @@
 from django.shortcuts import render, redirect
+from django.utils import timezone
+from django.db import transaction
+from django.shortcuts import get_object_or_404
 from .forms import MateriaPrimaForm, CompraMateriaPrimaForm
-from .models import Produto, Estoque, MateriaPrima, MaterialUsado, CompraMateriaPrima, CustoFixo
+from .models import Produto, Estoque, MateriaPrima, MaterialUsado, CompraMateriaPrima, CustoFixo, Venda, LancamentoFinanceiro, Venda, ItemVenda
 from .forms import ProdutoForm, MaterialUsadoForm, CustoFixoForm
 from django.forms import modelformset_factory
 from django.contrib import messages
@@ -8,7 +11,9 @@ from django.http import JsonResponse
 from decimal import Decimal
 import json
 from django.views.decorators.csrf import csrf_exempt
-
+from datetime import datetime
+import calendar
+from django.db.models import Sum, F
 
 
 # Create your views here.
@@ -244,7 +249,6 @@ def api_produto_detalhe(request, id):
         return JsonResponse({'error': 'Produto não encontrado'}, status=404)
 
 
-
 @csrf_exempt
 def api_produto_editar(request, id):
     if request.method == 'POST':
@@ -346,11 +350,99 @@ def api_materia_excluir(request, id):
             return JsonResponse({'error': 'Matéria-prima não encontrada'}, status=404)
 
 
+
+
+def vendas(request):
+    """
+    Renderiza a tela de PDV (Ponto de Venda)
+    """
+    produtos = Produto.objects.filter(quantidade_em_estoque__gt=0).order_by('nome')
+    return render(request, 'vendas.html', {'produtos': produtos})
+
+
+@csrf_exempt
+def api_salvar_venda(request):
+    """
+    API que recebe o JSON do carrinho e processa a venda completa
+    """
+    if request.method == 'POST':
+        try:
+            dados = json.loads(request.body)
+            itens_carrinho = dados.get('itens', [])
+            metodo_pagamento = dados.get('metodo_pagamento')
+            cliente_nome = dados.get('cliente_nome', 'Cliente Balcão')
+            total_venda = Decimal(dados.get('total_venda'))
+
+            if not itens_carrinho:
+                return JsonResponse({'success': False, 'error': 'Carrinho vazio.'})
+
+            # Inicia uma transação atômica (segurança de dados)
+            with transaction.atomic():
+                # 1. Criar a Venda (Cabeçalho)
+                nova_venda = Venda.objects.create(
+                    valor_total=total_venda,
+                    metodo_pagamento=metodo_pagamento,
+                    cliente_nome=cliente_nome
+                )
+
+                # 2. Processar Itens e Baixar Estoque
+                for item in itens_carrinho:
+                    produto = Produto.objects.select_for_update().get(id=item['id'])
+
+                    # Verificação de estoque extra
+                    if produto.quantidade_em_estoque < int(item['quantidade']):
+                        raise Exception(f"Estoque insuficiente para {produto.nome}")
+
+                    # Cria o item da venda
+                    ItemVenda.objects.create(
+                        venda=nova_venda,
+                        produto=produto,
+                        quantidade=item['quantidade'],
+                        valor_unitario=item['preco'],
+                        subtotal=Decimal(item['preco']) * int(item['quantidade'])
+                    )
+
+                    # Baixa no estoque
+                    produto.quantidade_em_estoque -= int(item['quantidade'])
+                    produto.save()
+
+                    # Atualiza valores do modelo Estoque auxiliar se existir
+                    if hasattr(produto, 'estoque'):
+                        produto.estoque.quantidade_produto = produto.quantidade_em_estoque
+                        produto.estoque.atualizar_valores()
+
+                # 3. Criar Lançamento Financeiro (Entrada de Caixa)
+                LancamentoFinanceiro.objects.create(
+                    tipo='ENTRADA',
+                    categoria='VENDA',
+                    descricao=f"Venda #{nova_venda.id} - {cliente_nome}",
+                    valor=total_venda,
+                    venda_origem=nova_venda,
+                    data=timezone.now().date()
+                )
+
+            return JsonResponse({'success': True, 'venda_id': nova_venda.id})
+
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=400)
+
+    return JsonResponse({'success': False, 'error': 'Método não permitido'}, status=405)
+
+
 def financeiro(request):
-    produtos = Produto.objects.all()
-    custo_fixo = CustoFixo.objects.last()
+    """
+    Visualização simples do financeiro para teste
+    """
+    lancamentos = LancamentoFinanceiro.objects.all().order_by('-data', '-id')
+
+    total_entradas = lancamentos.filter(tipo='ENTRADA').aggregate(Sum('valor'))['valor__sum'] or 0
+    total_saidas = lancamentos.filter(tipo='SAIDA').aggregate(Sum('valor'))['valor__sum'] or 0
+    saldo = total_entradas - total_saidas
+
     context = {
-        'produtos': produtos,
-        'custo_fixo': custo_fixo,
+        'lancamentos': lancamentos,
+        'total_entradas': total_entradas,
+        'total_saidas': total_saidas,
+        'saldo': saldo
     }
-    return render(request, 'financeiro.html', context)
+    return render(request, "financeiro.html", context)

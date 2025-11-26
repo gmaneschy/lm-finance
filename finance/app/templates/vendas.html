@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Sistema Financeiro - Vendas{% endblock %}
+{% block content %}
+
+    <!-- 1. Container que garante a largura máxima, centralização e o espaçamento da página -->
+    <div class="vendas-container">
+        <h1 class="titulo">📊 Frente de Caixa (PDV)</h1>
+
+        <!-- 2. Conteúdo com as duas colunas: Este DIV agora define o Flexbox principal, lado a lado no desktop -->
+        <div class="vendas-content">
+
+            <!-- Lado Esquerdo: Lista de Produtos -->
+            <div class="product-section">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="mb-0">🎀 Produtos Disponíveis</h3>
+                    </div>
+                    <div class="card-body">
+                        <!-- Barra de Busca -->
+                        <input type="text" id="buscaProduto" class="form-input" placeholder="Buscar produto...">
+
+                        <!-- Lista de Produtos (usa CSS Grid internamente) -->
+                        <div id="listaProdutos">
+                            {% for produto in produtos %}
+                            <div class="produto-item" data-nome="{{ produto.nome|lower }}">
+                                <div class="produto-card"
+                                     onclick="adicionarAoCarrinho({{ produto.id }}, '{{ produto.nome }}', '{{ produto.valor_venda|stringformat:'.2f' }}', {{ produto.quantidade_em_estoque }})">
+                                    <div class="card-body text-center cursor-pointer">
+                                        <h4 class="card-title font-weight-bold">{{ produto.nome }}</h4>
+                                        <span class="badge badge-info">{{ produto.get_categoria_display }}</span>
+                                        <h3 class="text-success mt-2">R$ {{ produto.valor_venda }}</h3>
+                                        <small class="text-muted">Estoque: <span id="estoque-{{ produto.id }}">{{ produto.quantidade_em_estoque }}</span></small>
+                                    </div>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <div class="text-center p-4">
+                                <p class="text-muted">Nenhum produto com estoque disponível.</p>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lado Direito: Carrinho e Pagamento -->
+            <div class="cart-section">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="mb-0">🛒 Carrinho</h4>
+                    </div>
+                    <div class="card-body">
+                        <!-- Tabela do Carrinho -->
+                        <div class="table-wrap">
+                            <table class="table-carrinho">
+                                <thead>
+                                    <tr>
+                                        <th>Item</th>
+                                        <th width="80">Qtd</th>
+                                        <th>Total</th>
+                                        <th width="40"></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tabelaCarrinho">
+                                    <!-- JS vai preencher aqui -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Totais e Finalização -->
+                        <div class="checkout-area">
+                            <hr>
+                            <div class="total-display">
+                                <h3>Total:</h3>
+                                <h2 class="text-success font-weight-bold" id="valorTotalDisplay">R$ 0,00</h2>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="clienteNome">Cliente (Opcional)</label>
+                                <input type="text" id="clienteNome" class="form-input" placeholder="Nome do cliente">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="metodoPagamento">Forma de Pagamento</label>
+                                <select id="metodoPagamento" class="form-input-select">
+                                    <option value="PIX">Pix</option>
+                                    <option value="DINHEIRO">Dinheiro</option>
+                                    <option value="CARTAO_CREDITO">Cartão de Crédito</option>
+                                    <option value="CARTAO_DEBITO">Cartão de Débito</option>
+                                </select>
+                            </div>
+
+                            <button class="btn-finalizar" onclick="finalizarVenda()">
+                                ✅ Finalizar Venda
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% block scripts %}
+<link rel="stylesheet" href="{% static 'css/vendas.css' %}">
+<script src="{% static 'js/vendas.js' %}"></script>
+{% endblock %}
+{% endblock %}

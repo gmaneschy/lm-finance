@@ -7,7 +7,8 @@ TELAS
         FORMULÁRIO DE CADASTRO DE PRODUTO
 
     ESTOQUE
-        Corrigir relação css navbar-página
 
+    VENDAS
+        Consertar grid-template-columns do #listaProdutos
 
     FINANCEIRO
