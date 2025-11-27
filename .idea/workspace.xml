@@ -6,8 +6,10 @@
   <component name="ChangeListManager">
     <list default="true" id="887f3ea7-6749-4b04-b6aa-5711d566189f" name="Changes" comment="Cadastro de produto unitário corrigido.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/finance/app/static/js/registradora.js" beforeDir="false" afterPath="$PROJECT_DIR$/finance/app/static/js/registradora.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/finance/app/templates/registradora.html" beforeDir="false" afterPath="$PROJECT_DIR$/finance/app/templates/registradora.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/finance/app/forms.py" beforeDir="false" afterPath="$PROJECT_DIR$/finance/app/forms.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/finance/app/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/finance/app/models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/finance/app/templates/cadastrar_produto.html" beforeDir="false" afterPath="$PROJECT_DIR$/finance/app/templates/cadastrar_produto.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/finance/db.sqlite3" beforeDir="false" afterPath="$PROJECT_DIR$/finance/db.sqlite3" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -210,8 +212,8 @@
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/finance/app/views.py</url>
-          <line>19</line>
-          <option name="timeStamp" value="1" />
+          <line>176</line>
+          <option name="timeStamp" value="6" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

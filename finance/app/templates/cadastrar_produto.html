@@ -97,35 +97,58 @@
                 </div>
             </div>
 
-            <!-- ========== COLUNA 3: CUSTOS FIXOS ========== -->
+            <!-- ========== COLUNA 3: CUSTOS FIXOS (2 COLUNAS INTERNAS) ========== -->
             <div class="coluna coluna-custos">
                 <h3>🔧 Custos Fixos</h3>
 
+                <div class="custos-fixos-grid">
+                    <!-- PRIMEIRA SUB-COLUNA (4 CAMPOS) -->
+                    <div class="coluna-metade">
+                        <div class="campo">
+                            {{ custo_fixo_form.energia.label_tag }}
+                            {{ custo_fixo_form.energia }}
+                        </div>
 
-                <div class="campo">
-                    {{ custo_fixo_form.energia.label_tag }}
-                    {{ custo_fixo_form.energia }}
+                        <div class="campo">
+                            {{ custo_fixo_form.cola.label_tag }}
+                            {{ custo_fixo_form.cola }}
+                        </div>
+
+                        <div class="campo">
+                            {{ custo_fixo_form.isqueiro.label_tag }}
+                            {{ custo_fixo_form.isqueiro }}
+                        </div>
+
+                        <div class="campo">
+                            {{ custo_fixo_form.das_mei.label_tag }}
+                            {{ custo_fixo_form.das_mei }}
+                        </div>
+                    </div>
+
+                    <!-- SEGUNDA SUB-COLUNA (4 CAMPOS) -->
+                    <div class="coluna-metade">
+                        <div class="campo">
+                            {{ custo_fixo_form.taxas_bancarias.label_tag }}
+                            {{ custo_fixo_form.taxas_bancarias }}
+                        </div>
+
+                        <div class="campo">
+                            {{ custo_fixo_form.papeleta.label_tag }}
+                            {{ custo_fixo_form.papeleta }}
+                        </div>
+
+                        <div class="campo">
+                            {{ custo_fixo_form.embalagem.label_tag }}
+                            {{ custo_fixo_form.embalagem }}
+                        </div>
+
+                        <div class="campo">
+                            {{ custo_fixo_form.etiqueta.label_tag }}
+                            {{ custo_fixo_form.etiqueta }}
+                        </div>
+                    </div>
                 </div>
 
-                <div class="campo">
-                    {{ custo_fixo_form.cola.label_tag }}
-                    {{ custo_fixo_form.cola }}
-                </div>
-
-                <div class="campo">
-                    {{ custo_fixo_form.isqueiro.label_tag }}
-                    {{ custo_fixo_form.isqueiro }}
-                </div>
-
-                <div class="campo">
-                    {{ custo_fixo_form.das_mei.label_tag }}
-                    {{ custo_fixo_form.das_mei }}
-                </div>
-
-                <div class="campo">
-                    {{ custo_fixo_form.taxas_bancarias.label_tag }}
-                    {{ custo_fixo_form.taxas_bancarias }}
-                </div>
                 <div class="header-custos">
                     <label class="toggle-bloqueio">
                         <input type="checkbox" id="id_custos_bloqueados" checked>
@@ -156,6 +179,5 @@
 <link rel="stylesheet" href="{% static 'css/cadastrar_produto.css' %}">
 <script src="{% static 'js/cadastrar_produto.js' %}"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script id="materiais-data" type="application/json">{{ materiais_data_json|safe }}</script>
 {% endblock %}
 {% endblock %}

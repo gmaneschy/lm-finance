@@ -119,11 +119,18 @@ class CustoFixo(models.Model):
     das_mei = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     taxas_bancarias = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
+    # NOVOS CAMPOS
+    papeleta = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    embalagem = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    etiqueta = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+
     @property
     def custo_fixo_total(self):
         return sum([
             self.energia, self.cola, self.isqueiro,
-            self.das_mei, self.taxas_bancarias
+            self.das_mei, self.taxas_bancarias,
+            # INCLUINDO NOVOS CAMPOS NO CÁLCULO
+            self.papeleta, self.embalagem, self.etiqueta
         ])
 
     def __str__(self):

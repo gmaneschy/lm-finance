@@ -122,6 +122,10 @@ class CustoFixoForm(forms.ModelForm):
             'isqueiro': 'Isqueiro/Fósforo (R$)',
             'das_mei': 'DAS MEI (R$)',
             'taxas_bancarias': 'Taxas Bancárias (R$)',
+            # NOVOS LABELS
+            'papeleta': 'Papeleta (R$)',
+            'embalagem': 'Embalagem (R$)',
+            'etiqueta': 'Etiqueta (R$)',
         }
         widgets = {
             # Classes para o JS
@@ -130,4 +134,8 @@ class CustoFixoForm(forms.ModelForm):
             'isqueiro': forms.NumberInput(attrs={'class': 'form-control custo-fixo-input', 'step': '0.01'}),
             'das_mei': forms.NumberInput(attrs={'class': 'form-control custo-fixo-input', 'step': '0.01'}),
             'taxas_bancarias': forms.NumberInput(attrs={'class': 'form-control custo-fixo-input', 'step': '0.01'}),
+            # NOVOS WIDGETS
+            'papeleta': forms.NumberInput(attrs={'class': 'form-control custo-fixo-input', 'step': '0.01'}),
+            'embalagem': forms.NumberInput(attrs={'class': 'form-control custo-fixo-input', 'step': '0.01'}),
+            'etiqueta': forms.NumberInput(attrs={'class': 'form-control custo-fixo-input', 'step': '0.01'}),
         }

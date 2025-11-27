@@ -13,7 +13,7 @@
     text-align: center;
 }
 
-/* ========== GRID DE 3 COLUNAS ========== */
+/* ========== GRID DE 3 COLUNAS PRINCIPAL ========== */
 .form-container {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -21,7 +21,7 @@
     margin-bottom: 30px;
 }
 
-/* ========== COLUNAS ========== */
+/* ========== COLUNAS EXTERNAS ========== */
 .coluna {
     border: 2px solid black;
     background: white;
@@ -48,6 +48,24 @@
 .coluna-produto h3 { border-color: #3498db; }
 .coluna-materiais h3 { border-color: #e74c3c; }
 .coluna-custos h3 { border-color: #f39c12; }
+
+/* ========== CUSTOS FIXOS: GRID INTERNO (AS 2 COLUNAS DE 4 CAMPOS) ========== */
+/* Este seletor é crucial para fazer as 2 subcolunas (coluna-metade) ficarem lado a lado. */
+.custos-fixos-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* 2 colunas de largura igual */
+    gap: 15px; /* Espaçamento entre as duas subcolunas */
+    margin-bottom: 20px;
+}
+
+/* Garante que os campos dentro da coluna-metade sejam empilhados verticalmente */
+.coluna-metade {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Remove a definição .grid-custos-fixos antiga (que não estava sendo usada) */
+
 
 /* ========== CAMPOS ========== */
 .campo {
@@ -104,14 +122,15 @@ select:focus {
     font-style: italic;
 }
 
-/* ========== CAMPOS EM LINHA ========== */
+/* ========== CAMPOS EM LINHA (para materiais) ========== */
 .campo-linha {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 10px;
 }
 
-.campo-metade {
+/* Ajusta o campo-metade quando usado dentro de campo-linha (para materiais) */
+.campo-linha .campo-metade {
     margin-bottom: 0;
 }
 
@@ -283,17 +302,12 @@ select:focus {
 }
 
 /* ========== HEADER CUSTOS COM CADEADO ========== */
+/* Mantido o espaçamento, mas com justify-content: flex-end para centralizar o botão de bloqueio */
 .header-custos {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-end;
     align-items: center;
     margin-bottom: 20px;
-}
-
-.header-custos h3 {
-    margin: 0;
-    padding: 0;
-    border: none;
 }
 
 .toggle-bloqueio {
@@ -375,12 +389,21 @@ select:focus {
         grid-template-columns: 1fr 1fr;
     }
 
+    /* O produto fica sozinho em uma linha */
     .coluna-produto {
         grid-column: 1 / -1;
     }
 }
 
+@media (max-width: 900px) {
+    /* Em telas menores, o grid de Custos Fixos deve virar 1 coluna */
+    .custos-fixos-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
 @media (max-width: 768px) {
+    /* Todas as colunas principais ficam em uma única coluna */
     .form-container {
         grid-template-columns: 1fr;
     }
