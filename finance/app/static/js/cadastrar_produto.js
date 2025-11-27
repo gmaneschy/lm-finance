@@ -25,8 +25,14 @@ document.addEventListener("DOMContentLoaded", function() {
     try {
         const materiaisJsonElement = document.getElementById('materiais-data');
         if (materiaisJsonElement) {
-            materiaisData = JSON.parse(materiaisJsonElement.textContent);
-            console.log("✅ Materiais carregados:", Object.keys(materiaisData).length);
+            // Garante que o conteúdo seja lido como string antes do parse
+            const jsonText = materiaisJsonElement.textContent.trim();
+            if (jsonText) {
+                materiaisData = JSON.parse(jsonText);
+                console.log("✅ Materiais carregados:", Object.keys(materiaisData).length);
+                // 💡 DEBUG: Loga o objeto de dados recebido do Django para inspeção
+                console.log("DEBUG: materiaisData (Primeiros 5 itens):", Object.fromEntries(Object.entries(materiaisData).slice(0, 5)));
+            }
         }
     } catch (e) {
         console.error("❌ Erro ao carregar materiais:", e);
@@ -75,7 +81,8 @@ document.addEventListener("DOMContentLoaded", function() {
         novoItem.classList.remove("deletado");
         novoItem.setAttribute("data-form-index", currentFormCount);
 
-        // Atualiza todos os elementos
+        // Remove listeners temporariamente antes da clonagem (embora cloneNode(true) já faça isso)
+        // E limpa os valores do novo item
         novoItem.querySelectorAll("input, select, label").forEach(elemento => {
             if (elemento.tagName === "LABEL") {
                 const forAttr = elemento.getAttribute("for");
@@ -83,6 +90,7 @@ document.addEventListener("DOMContentLoaded", function() {
                     elemento.setAttribute("for", forAttr.replace(/form-\d+-/, `form-${currentFormCount}-`));
                 }
             } else {
+                // Atualiza name e id
                 if (elemento.name) elemento.name = elemento.name.replace(/form-\d+-/, `form-${currentFormCount}-`);
                 if (elemento.id) elemento.id = elemento.id.replace(/form-\d+-/, `form-${currentFormCount}-`);
 
@@ -112,77 +120,73 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // ========== FUNÇÃO: APLICAR EVENTOS ==========
     function aplicarEventos() {
-        console.log("🔄 Aplicando eventos");
+        // console.log("🔄 Aplicando eventos");
 
         // EVENTOS: Botões remover
         document.querySelectorAll(".btn-remover-material").forEach(btn => {
-            btn.replaceWith(btn.cloneNode(true));
+            btn.removeEventListener("click", removerMaterialHandler);
+            btn.addEventListener("click", removerMaterialHandler);
         });
 
-        document.querySelectorAll(".btn-remover-material").forEach(btn => {
-            btn.addEventListener("click", function() {
-                const materiais = document.querySelectorAll(".material-item");
+        // Eventos de cálculo (change e input)
+        const selectors = [
+            '.material-select',
+            '.tipo-unidade-select',
+            '.qtd-material-input',
+            '.custo-fixo-input'
+        ];
 
-                // ⚠️ Impede remover se houver apenas 1 material
-                if (materiais.length <= 1) {
-                    alert("⚠️ É necessário manter pelo menos um material no formulário.");
-                    return;
-                }
+        selectors.forEach(selector => {
+            document.querySelectorAll(selector).forEach(elemento => {
+                elemento.removeEventListener("change", calcularTudo);
+                elemento.removeEventListener("input", calcularTudo);
 
-                console.log("🗑️ Removendo material definitivamente");
-                const item = this.closest(".material-item");
-                if (!item) return;
-
-                item.remove();
-
-                // Atualiza índices
-                const items = document.querySelectorAll(".material-item");
-                items.forEach((el, index) => {
-                    el.querySelectorAll("input, select, label").forEach(elemento => {
-                        if (elemento.name) elemento.name = elemento.name.replace(/form-\d+-/, `form-${index}-`);
-                        if (elemento.id) elemento.id = elemento.id.replace(/form-\d+-/, `form-${index}-`);
-                        if (elemento.tagName === "LABEL" && elemento.getAttribute("for"))
-                            elemento.setAttribute("for", elemento.getAttribute("for").replace(/form-\d+-/, `form-${index}-`));
-                    });
-                });
-
-                totalFormsInput.value = items.length;
-                console.log(`📉 Novo total de materiais: ${totalFormsInput.value}`);
-
-                calcularTudo();
+                elemento.addEventListener("change", calcularTudo);
+                elemento.addEventListener("input", calcularTudo);
             });
         });
 
-        // EVENTOS: Selects de material
-        document.querySelectorAll('.material-select').forEach(select => {
-            select.removeEventListener("change", calcularTudo);
-            select.addEventListener("change", calcularTudo);
-        });
-
-        // EVENTOS: Tipo de unidade
-        document.querySelectorAll('.tipo-unidade-select').forEach(select => {
-            select.removeEventListener("change", calcularTudo);
-            select.addEventListener("change", calcularTudo);
-        });
-
-        // EVENTOS: Quantidade de material
-        document.querySelectorAll('.qtd-material-input').forEach(input => {
-            input.removeEventListener("input", calcularTudo);
-            input.addEventListener("input", calcularTudo);
-        });
-
-        // EVENTOS: Custos fixos
-        document.querySelectorAll('.custo-fixo-input').forEach(input => {
-            input.removeEventListener("input", calcularTudo);
-            input.addEventListener("input", calcularTudo);
-        });
-
-        // EVENTOS: Valor de venda
+        // EVENTOS: Valor de venda (apenas input)
         if (valorVendaInput) {
             valorVendaInput.removeEventListener("input", calcularTudo);
             valorVendaInput.addEventListener("input", calcularTudo);
         }
     }
+
+    // Handler para o botão de remoção
+    function removerMaterialHandler() {
+        const materiais = document.querySelectorAll(".material-item");
+
+        if (materiais.length <= 1) {
+            console.warn("⚠️ É necessário manter pelo menos um material no formulário.");
+            // Substitua alert() por um modal customizado no seu projeto final
+            return;
+        }
+
+        console.log("🗑️ Removendo material");
+        const item = this.closest(".material-item");
+        if (!item) return;
+
+        item.remove();
+
+        const items = document.querySelectorAll(".material-item");
+        items.forEach((el, index) => {
+            el.setAttribute("data-form-index", index);
+            el.querySelectorAll("input, select, label").forEach(elemento => {
+                const regex = /form-\d+-/;
+                if (elemento.name) elemento.name = elemento.name.replace(regex, `form-${index}-`);
+                if (elemento.id) elemento.id = elemento.id.replace(regex, `form-${index}-`);
+                if (elemento.tagName === "LABEL" && elemento.getAttribute("for"))
+                    elemento.setAttribute("for", elemento.getAttribute("for").replace(regex, `form-${index}-`));
+            });
+        });
+
+        totalFormsInput.value = items.length;
+        console.log(`📉 Novo total de materiais: ${totalFormsInput.value}`);
+
+        calcularTudo();
+    }
+
 
     // ========== FUNÇÃO: CALCULAR TUDO ==========
     function calcularTudo() {
@@ -209,8 +213,11 @@ document.addEventListener("DOMContentLoaded", function() {
 
                     if (tipoUnidade === 'CM') {
                         valorUnitario = material.valor_por_cm || 0;
+                        console.log(`DEBUG CÁLCULO: Material ID ${materialId} (CM). Valor Unitário LIDO: ${valorUnitario}. Qtd: ${quantidade}`);
                     } else if (tipoUnidade === 'QUANTIDADE') {
                         valorUnitario = material.valor_por_quantidade || 0;
+                        // 💡 LOG DE DEBUG ADICIONADO AQUI
+                        console.log(`DEBUG CÁLCULO: Material ID ${materialId} (QUANTIDADE). Valor Unitário LIDO: ${valorUnitario}. Qtd: ${quantidade}`);
                     }
 
                     const custoMaterial = valorUnitario * quantidade;
@@ -223,6 +230,7 @@ document.addEventListener("DOMContentLoaded", function() {
             }
         });
 
+        // Cálculo dos custos fixos
         document.querySelectorAll('.custo-fixo-input').forEach(input => {
             totalCustosFixos += parseFloat(input.value) || 0;
         });
@@ -231,8 +239,11 @@ document.addEventListener("DOMContentLoaded", function() {
 
         if (totalMateriaisSpan) totalMateriaisSpan.textContent = totalMateriais.toFixed(2);
         if (totalCustosFixosSpan) totalCustosFixosSpan.textContent = totalCustosFixos.toFixed(2);
+
+        // Atualiza o Custo Total no formulário do produto
         if (custoTotalInput) custoTotalInput.value = custoTotal.toFixed(2);
 
+        // Cálculo do Lucro
         if (valorVendaInput && lucroVendaInput) {
             const valorVenda = parseFloat(valorVendaInput.value) || 0;
             const lucro = valorVenda - custoTotal;

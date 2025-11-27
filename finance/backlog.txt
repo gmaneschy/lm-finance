@@ -1,10 +1,14 @@
 TELAS
     CADASTRO DE MATÉRIA PRIMA
         (FORMULÁRIO) REGISTRO DE MATÉRIA PRIMA
+            Adicionar mensagem de cadastro
         (FORMULÁRIO) COMPRA DE MATÉRIA PRIMA
+            Adicionar mensagem de cadastro
 
     CADASTRO DE PRODUTO
         FORMULÁRIO DE CADASTRO DE PRODUTO
+            Adicionar Custos Variáveis (planilha) aos Custos Fixos
+            Adicionar mensagem de cadastro
 
     ESTOQUE
 

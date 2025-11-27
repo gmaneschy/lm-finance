@@ -42,7 +42,7 @@ class CompraMateriaPrima(models.Model):
     data_compra = models.DateField(default=timezone.now)
 
     def __str__(self):
-        return (f"Compra de {self.materia_prima.nome} ({self.marca}) - "
+        return (f"{self.materia_prima.nome} ({self.marca}) - "
                 f"{self.preco} R$ - {self.get_unidade_display()}")
 
 

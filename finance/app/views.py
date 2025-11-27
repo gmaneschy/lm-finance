@@ -351,7 +351,6 @@ def api_materia_excluir(request, id):
 
 
 
-
 def vendas(request):
     """
     Renderiza a tela de PDV (Ponto de Venda)
