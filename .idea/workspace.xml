@@ -4,14 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="887f3ea7-6749-4b04-b6aa-5711d566189f" name="Changes" comment="Tela de Vendas 90%&#10;Tela do Financeiro (básico)">
+    <list default="true" id="887f3ea7-6749-4b04-b6aa-5711d566189f" name="Changes" comment="Cadastro de produto unitário corrigido.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/finance/app/forms.py" beforeDir="false" afterPath="$PROJECT_DIR$/finance/app/forms.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/finance/app/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/finance/app/models.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/finance/app/static/js/cadastrar_produto.js" beforeDir="false" afterPath="$PROJECT_DIR$/finance/app/static/js/cadastrar_produto.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/finance/app/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/finance/app/views.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/finance/backlog.txt" beforeDir="false" afterPath="$PROJECT_DIR$/finance/backlog.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/finance/db.sqlite3" beforeDir="false" afterPath="$PROJECT_DIR$/finance/db.sqlite3" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/finance/app/static/js/registradora.js" beforeDir="false" afterPath="$PROJECT_DIR$/finance/app/static/js/registradora.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/finance/app/templates/registradora.html" beforeDir="false" afterPath="$PROJECT_DIR$/finance/app/templates/registradora.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -182,7 +178,15 @@
       <option name="project" value="LOCAL" />
       <updated>1764181853309</updated>
     </task>
-    <option name="localTasksCounter" value="13" />
+    <task id="LOCAL-00013" summary="Cadastro de produto unitário corrigido.">
+      <option name="closed" value="true" />
+      <created>1764254981469</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1764254981469</updated>
+    </task>
+    <option name="localTasksCounter" value="14" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -198,6 +202,18 @@
     <MESSAGE value="tela de estoque e scripts" />
     <MESSAGE value="ajuste fino css estoque" />
     <MESSAGE value="Tela de Vendas 90%&#10;Tela do Financeiro (básico)" />
-    <option name="LAST_COMMIT_MESSAGE" value="Tela de Vendas 90%&#10;Tela do Financeiro (básico)" />
+    <MESSAGE value="Cadastro de produto unitário corrigido." />
+    <option name="LAST_COMMIT_MESSAGE" value="Cadastro de produto unitário corrigido." />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/finance/app/views.py</url>
+          <line>19</line>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
 </project>

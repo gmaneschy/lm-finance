@@ -42,7 +42,7 @@
 .tabelas-container {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 40px;
+    gap: 5px;
     width: 80%; /* Faz com que ambas fiquem centralizadas */
     justify-content: center;
 }

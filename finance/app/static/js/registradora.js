@@ -2,9 +2,42 @@ document.addEventListener('DOMContentLoaded', function () {
   const unidadeSelect = document.querySelector('#id_unidade');
   const camposQuantidade = document.getElementById('campos_quantidade');
   const camposCm = document.getElementById('campos_cm');
+  const precoTotalInput = document.querySelector('#id_preco');
 
-  if (!unidadeSelect || !camposQuantidade || !camposCm) return;
+  // Campos de QUANTIDADE
+  const qtdUnidadeInput = document.querySelector('#id_unidade_em_quantidade');
+  const valorUnidadeInput = document.querySelector('#id_valor_por_quantidade');
 
+  // Campos de CM
+  const qtdCmInput = document.querySelector('#id_unidade_em_cm');
+  const valorCmInput = document.querySelector('#id_valor_por_cm');
+
+  if (!unidadeSelect || !camposQuantidade || !camposCm || !precoTotalInput) return;
+
+  // ========== 1. FUNÇÃO DE CÁLCULO DE PREÇO TOTAL ==========
+  function calcularPrecoTotal() {
+    const tipoUnidade = unidadeSelect.value;
+    let quantidade = 0;
+    let valorUnitario = 0;
+
+    if (tipoUnidade === 'QUANTIDADE') {
+      // Usa os campos de QUANTIDADE
+      quantidade = parseFloat(qtdUnidadeInput.value) || 0;
+      valorUnitario = parseFloat(valorUnidadeInput.value) || 0;
+    } else if (tipoUnidade === 'CM') {
+      // Usa os campos de CM
+      quantidade = parseFloat(qtdCmInput.value) || 0;
+      valorUnitario = parseFloat(valorCmInput.value) || 0;
+    }
+
+    const precoTotal = quantidade * valorUnitario;
+
+    // Atualiza o campo 'Preço Total' com o valor calculado, formatado com 2 casas decimais
+    // O toFixed(2) é importante para garantir a precisão de moeda.
+    precoTotalInput.value = precoTotal.toFixed(2);
+  }
+
+  // ========== 2. FUNÇÃO DE EXIBIÇÃO DE CAMPOS (EXISTENTE) ==========
   function toggleCampos() {
     const v = unidadeSelect.value;
     if (v === 'QUANTIDADE') {
@@ -17,10 +50,23 @@ document.addEventListener('DOMContentLoaded', function () {
       camposQuantidade.style.display = 'none';
       camposCm.style.display = 'none';
     }
+    // Garante que o cálculo seja refeito ao mudar o tipo de unidade
+    calcularPrecoTotal();
   }
 
+  // Monitora a mudança na unidade
   unidadeSelect.addEventListener('change', toggleCampos);
+
+  // Monitora as entradas nos campos relevantes para o cálculo
+  [qtdUnidadeInput, valorUnidadeInput, qtdCmInput, valorCmInput].forEach(input => {
+    if (input) {
+      input.addEventListener('input', calcularPrecoTotal);
+    }
+  });
+
+  // Inicializa a exibição e o cálculo
   toggleCampos();
+  calcularPrecoTotal();
 });
 
 document.addEventListener("DOMContentLoaded", function() {
