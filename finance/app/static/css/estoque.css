@@ -1,7 +1,14 @@
+.titulo {
+    text-align: center;
+    margin-bottom: 20px; /* Reduzi um pouco para economizar espaço vertical */
+    font-weight: 700;
+    color: black;
+    flex-shrink: 0;
+}
+
 .estoque-page {
     display: flex;
     flex-direction: column;
-    margin-top: 40px; /* Aumenta espaçamento logo abaixo do navbar */
     align-items: center; /* Centraliza o conteúdo */
 }
 

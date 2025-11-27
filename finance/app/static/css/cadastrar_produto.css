@@ -1,9 +1,15 @@
 /* ========== CADASTRAR PRODUTO - ESTILOS ========== */
+.titulo {
+    text-align: center;
+    margin-bottom: 20px; /* Reduzi um pouco para economizar espaço vertical */
+    font-weight: 700;
+    color: black;
+    flex-shrink: 0;
+}
 
 .cadastro-produto-container {
     max-width: 1400px;
     margin: 0 auto;
-    padding: 20px;
 }
 
 .cadastro-produto-container h2 {
