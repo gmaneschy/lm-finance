@@ -4,11 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="887f3ea7-6749-4b04-b6aa-5711d566189f" name="Changes" comment="Cadastro de produto unitário corrigido.">
+    <list default="true" id="887f3ea7-6749-4b04-b6aa-5711d566189f" name="Changes" comment="Colunas cadastrar_produto.html">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/finance/app/forms.py" beforeDir="false" afterPath="$PROJECT_DIR$/finance/app/forms.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/finance/app/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/finance/app/models.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/finance/app/templates/cadastrar_produto.html" beforeDir="false" afterPath="$PROJECT_DIR$/finance/app/templates/cadastrar_produto.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/finance/db.sqlite3" beforeDir="false" afterPath="$PROJECT_DIR$/finance/db.sqlite3" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -188,7 +186,15 @@
       <option name="project" value="LOCAL" />
       <updated>1764254981469</updated>
     </task>
-    <option name="localTasksCounter" value="14" />
+    <task id="LOCAL-00014" summary="Colunas cadastrar_produto.html">
+      <option name="closed" value="true" />
+      <created>1764262494150</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1764262494150</updated>
+    </task>
+    <option name="localTasksCounter" value="15" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -205,7 +211,8 @@
     <MESSAGE value="ajuste fino css estoque" />
     <MESSAGE value="Tela de Vendas 90%&#10;Tela do Financeiro (básico)" />
     <MESSAGE value="Cadastro de produto unitário corrigido." />
-    <option name="LAST_COMMIT_MESSAGE" value="Cadastro de produto unitário corrigido." />
+    <MESSAGE value="Colunas cadastrar_produto.html" />
+    <option name="LAST_COMMIT_MESSAGE" value="Colunas cadastrar_produto.html" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

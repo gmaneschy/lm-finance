@@ -3,8 +3,6 @@ from django.utils import timezone
 from decimal import Decimal
 
 # Create your models here.
-
-
 class MateriaPrima(models.Model):
     C_CATEGORIA = [
         ('FITA', 'Fita'),
@@ -202,7 +200,17 @@ class Venda(models.Model):
 
 class ItemVenda(models.Model):
     venda = models.ForeignKey(Venda, related_name='itens', on_delete=models.CASCADE)
-    produto = models.ForeignKey(Produto, on_delete=models.PROTECT)  # Se deletar produto, não deleta a venda histórica
+
+    # === CORREÇÃO CRÍTICA AQUI: SET_NULL + null=True ===
+    # Ao deletar o Produto, a FK é definida como NULL, preservando o histórico de vendas.
+    produto = models.ForeignKey(
+        Produto,
+        on_delete=models.SET_NULL,
+        null=True,  # Permite que o campo seja NULL no banco de dados.
+        related_name='itens_vendidos'
+    )
+    # ===================================================
+
     quantidade = models.PositiveIntegerField(default=1)
     valor_unitario = models.DecimalField(max_digits=10, decimal_places=2)
     subtotal = models.DecimalField(max_digits=10, decimal_places=2)
@@ -212,4 +220,6 @@ class ItemVenda(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.quantidade}x {self.produto.nome} (Venda #{self.venda.id})"
+        # Adiciona um tratamento para produtos que foram deletados (quando o produto for None)
+        nome_produto = self.produto.nome if self.produto else "Produto Deletado (ID Histórico)"
+        return f"{self.quantidade}x {nome_produto} (Venda #{self.venda.id})"
