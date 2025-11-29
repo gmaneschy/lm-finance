@@ -1,6 +1,6 @@
 from django import forms
 from .models import MateriaPrima, CompraMateriaPrima
-from .models import Produto, MaterialUsado, CustoFixo
+from .models import Produto, MaterialUsado, CustoFixo, CustoFixoMensal
 
 
 class MateriaPrimaForm(forms.ModelForm):
@@ -138,4 +138,29 @@ class CustoFixoForm(forms.ModelForm):
             'papeleta': forms.NumberInput(attrs={'class': 'form-control custo-fixo-input', 'step': '0.01'}),
             'embalagem': forms.NumberInput(attrs={'class': 'form-control custo-fixo-input', 'step': '0.01'}),
             'etiqueta': forms.NumberInput(attrs={'class': 'form-control custo-fixo-input', 'step': '0.01'}),
+        }
+
+
+class CustoMensalForm(forms.ModelForm):
+    class Meta:
+        model = CustoFixoMensal
+        fields = [
+            'energia', 'cola', 'isqueiro',
+            'papeleta', 'embalagem', 'etiqueta',
+            'taxas_bancarias', 'das_mei', 'outros_variaveis'
+        ]
+        labels = {
+            'energia': 'Energia Elétrica (R$)',
+            'cola': 'Gasto com Cola/Adesivos (R$)',
+            'isqueiro': 'Gasto com Isqueiro/Gás (R$)',
+            'papeleta': 'Papeletas/Tags (R$)',
+            'embalagem': 'Embalagens/Sacolas (R$)',
+            'etiqueta': 'Etiquetas (R$)',
+            'taxas_bancarias': 'Taxas da Maquininha/Banco (R$)',
+            'das_mei': 'DAS MEI (R$)',
+            'outros_variaveis': 'Outros (Frete, Marketing, etc)',
+        }
+        widgets = {
+            field: forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'})
+            for field in fields
         }

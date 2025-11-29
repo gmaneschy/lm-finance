@@ -275,26 +275,3 @@ class LancamentoFinanceiro(models.Model):
 
     def __str__(self):
         return f"{self.get_tipo_display()} - {self.descricao} - R$ {self.valor}"
-
-
-# NOVO MODELO: Metas Financeiras (Recomendação MEI)
-class MetasFinanceiras(models.Model):
-    """
-    Armazena as metas mensais para acompanhamento de desempenho.
-    """
-    data_referencia = models.DateField(
-        unique=True,
-        help_text="Primeiro dia do mês ao qual a meta se refere (Ex: 2025-01-01)"
-    )
-    # Limite MEI (anual R$ 81.000,00 - mensal R$ 6.750,00)
-    meta_faturamento_mensal = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        default=Decimal('6750.00'),
-        help_text="Meta mensal de faturamento (Limite MEI é R$ 6.750,00)"
-    )
-    meta_lucro_liquido = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    meta_quantidade_vendas = models.PositiveIntegerField(default=0)
-
-    def __str__(self):
-        return f"Metas para {self.data_referencia.strftime('%B/%Y')}"

@@ -1,136 +1,188 @@
 {% extends "base.html" %}
 {% load static %}
-{% load humanize %}
-{% load l10n %} <!-- NOVO: Carrega o filtro 'unlocalize' para uso nos scripts JS -->
+
 
 {% block title %}Dashboard Financeiro{% endblock %}
 
 {% block content %}
 
-<div class="container mx-auto p-4 md:p-8">
-    <h1 class="titulo text-3xl font-extrabold text-indigo-700 mb-2">📊 Dashboard Financeiro</h1>
-    <p class="text-gray-500 mb-6">Resultados consolidados para o mês de {{ primeiro_dia_mes|date:"F/Y" }}.</p>
+<body class="bg-light">
 
-    <!-- Indicadores de Lucratividade (Planilha: Receitas e Resultados) -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+<div class="container py-4">
 
-        <!-- Faturamento Bruto Mensal -->
-        <div class="bg-white p-6 rounded-xl shadow-lg border-l-4 border-indigo-500 transition hover:shadow-xl">
-            <p class="text-sm font-medium text-gray-500">Faturamento Bruto Mensal</p>
-            <p class="text-3xl font-bold text-gray-900 mt-1">R$ {{ faturamento_bruto_mensal|floatformat:2|intcomma }}</p>
-            {% if metas and faturamento_bruto_mensal and metas.meta_faturamento_mensal %}
-            <p class="text-xs text-gray-400 mt-2">Meta: R$ {{ metas.meta_faturamento_mensal|floatformat:2|intcomma }}</p>
-            {% endif %}
-        </div>
-
-        <!-- Lucro Bruto -->
-        <div class="bg-white p-6 rounded-xl shadow-lg border-l-4 border-emerald-500 transition hover:shadow-xl">
-            <p class="text-sm font-medium text-gray-500">Lucro Bruto (Faturamento - Custo Variável)</p>
-            <p class="text-3xl font-bold text-emerald-600 mt-1">R$ {{ lucro_bruto|floatformat:2|intcomma }}</p>
-        </div>
-
-        <!-- Lucro Líquido -->
-        <div class="bg-white p-6 rounded-xl shadow-lg border-l-4 border-teal-500 transition hover:shadow-xl">
-            <p class="text-sm font-medium text-gray-500">Lucro Líquido (Lucro Bruto - Custo Fixo)</p>
-            <p class="text-3xl font-bold text-teal-600 mt-1">R$ {{ lucro_liquido|floatformat:2|intcomma }}</p>
-        </div>
-
-        <!-- Margem de Lucro % -->
-        <div class="bg-white p-6 rounded-xl shadow-lg border-l-4 border-blue-500 transition hover:shadow-xl">
-            <p class="text-sm font-medium text-gray-500">Margem de Lucro Líquido (%)</p>
-            <p class="text-3xl font-bold text-blue-600 mt-1">{{ margem_lucro_percentual|floatformat:2 }}%</p>
-            {% if metas and metas.meta_lucro_liquido %}
-            <p class="text-xs text-gray-400 mt-2">Meta: R$ {{ metas.meta_lucro_liquido|floatformat:2|intcomma }}</p>
-            {% endif %}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3>📊 Painel Financeiro</h3>
+        <div class="btn-group">
+            <a href="?mes={{ meses_nav.anterior.month }}&ano={{ meses_nav.anterior.year }}" class="btn btn-outline-secondary">◀ Anterior</a>
+            <button class="btn btn-secondary disabled">{{ data_atual|date:"F Y"|upper }}</button>
+            <a href="?mes={{ meses_nav.proximo.month }}&ano={{ meses_nav.proximo.year }}" class="btn btn-outline-secondary">Próximo ▶</a>
         </div>
     </div>
 
-    <!-- Seção de Custos e Ticket Médio -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-
-        <!-- Custos Detalhados -->
-        <div class="bg-white p-6 rounded-xl shadow-lg lg:col-span-2">
-            <h2 class="text-xl font-semibold text-gray-800 mb-4">Detalhamento dos Custos Mensais</h2>
-            <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-                <p class="text-gray-700"><span class="font-semibold">Custo de Matéria-Prima (CMV):</span> R$ {{ cmv|floatformat:2|intcomma }}</p>
-                <p class="text-gray-700"><span class="font-semibold">Outros Variáveis (Luz, Papelaria):</span> R$ {{ custo_variavel_outros|floatformat:2|intcomma }}</p>
-                <p class="text-gray-700"><span class="font-semibold text-red-600">Total Variável (A):</span> R$ {{ custo_variavel_total_total|floatformat:2|intcomma }}</p>
-                <p class="text-gray-700"><span class="font-semibold">Custo Fixo (DAS MEI, Taxas):</span> R$ {{ custo_fixo_total|floatformat:2|intcomma }}</p>
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card card-kpi bg-gradient-primary p-3">
+                <h6>Faturamento Bruto</h6>
+                <h3>R$ {{ kpis.faturamento|floatformat:2 }}</h3>
             </div>
-            <p class="mt-4 text-sm text-gray-500">O Lucro Líquido é calculado por: Faturamento Bruto - (A) - Custo Fixo.</p>
         </div>
-
-        <!-- Indicadores Rápidos -->
-        <div class="bg-white p-6 rounded-xl shadow-lg border-l-4 border-yellow-500">
-            <h2 class="text-xl font-semibold text-gray-800 mb-4">Indicadores Chave</h2>
-            <p class="text-gray-700 mb-2">
-                <span class="font-semibold">Número de Vendas:</span> {{ total_vendas }}
-                {% if metas and metas.meta_quantidade_vendas %}
-                (Meta: {{ metas.meta_quantidade_vendas }})
-                {% endif %}
-            </p>
-            <p class="text-gray-700 mb-2">
-                <span class="font-semibold">Ticket Médio:</span> R$ {{ ticket_medio|floatformat:2|intcomma }}
-            </p>
-            <p class="text-gray-700 mb-2">
-                <span class="font-semibold">Ponto de Equilíbrio:</span> Cálculo de P.E. requer dados anuais. (Exibir no JS/Próxima etapa)
-            </p>
+        <div class="col-md-3">
+            <div class="card card-kpi bg-gradient-danger text-white p-3" style="background: linear-gradient(45deg, #e74a3b, #be2617);">
+                <h6>Custos Totais</h6>
+                <h3>R$ {{ kpis.custo_total|floatformat:2 }}</h3>
+                <small style="font-size: 0.8em">CMV + Variáveis + Fixos</small>
+            </div>
         </div>
-
-    </div>
-
-    <!-- Tabela de Produtos Vendidos no Mês -->
-    <div class="bg-white p-6 rounded-xl shadow-lg mb-8">
-        <h2 class="text-xl font-semibold text-gray-800 mb-4">Produtos Mais Vendidos no Mês</h2>
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Produto</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Qtd. Vendida</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Faturamento</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Custo (CMV)</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Lucro Bruto (Produto)</th>
-                    </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
-                    {% for produto in produtos_vendidos %}
-                    <tr>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ produto.produto__nome }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ produto.total_vendido }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">R$ {{ produto.faturamento_produto|floatformat:2|intcomma }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-red-500">R$ {{ produto.custo_produto|floatformat:2|intcomma }}</td>
-
-                        {# Usando o add de forma indireta para simular subtração (Lucro = Faturamento - Custo) #}
-                        {% with lucro_produto=produto.faturamento_produto|add:"-"|add:produto.custo_produto %}
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-emerald-600">R$ {{ lucro_produto|floatformat:2|intcomma }}</td>
-                        {% endwith %}
-
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">Nenhum produto vendido no período.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+        <div class="col-md-3">
+            <div class="card card-kpi bg-gradient-success p-3">
+                <h6>Lucro Líquido</h6>
+                <h3>R$ {{ kpis.lucro_liquido|floatformat:2 }}</h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card card-kpi bg-gradient-info p-3">
+                <h6>Margem de Lucro</h6>
+                <h3>{{ kpis.margem }}%</h3>
+                <small>Ticket Médio: R$ {{ kpis.ticket_medio|floatformat:2 }}</small>
+            </div>
         </div>
     </div>
 
-    <!-- Gráfico de Distribuição de Custos -->
-    <div class="bg-white p-6 rounded-xl shadow-lg mb-8">
-        <h2 class="text-xl font-semibold text-gray-800 mb-4">Distribuição de Receita vs. Custos</h2>
-        <div class="chart-container h-96 w-full mx-auto">
-            <canvas id="revenueCostChart"></canvas>
+    <div class="row">
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3">
+                    <h5 class="m-0 font-weight-bold text-primary">✏️ Despesas do Mês</h5>
+                    <small class="text-muted">Preencha os gastos operacionais deste mês.</small>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+
+                        <h6 class="text-secondary mt-2"><small>Custos Variáveis (Insumos)</small></h6>
+                        <div class="row g-2">
+                            <div class="col-6 mb-2">{{ form.energia.label_tag }} {{ form.energia }}</div>
+                            <div class="col-6 mb-2">{{ form.cola.label_tag }} {{ form.cola }}</div>
+                            <div class="col-6 mb-2">{{ form.isqueiro.label_tag }} {{ form.isqueiro }}</div>
+                            <div class="col-6 mb-2">{{ form.papeleta.label_tag }} {{ form.papeleta }}</div>
+                            <div class="col-6 mb-2">{{ form.embalagem.label_tag }} {{ form.embalagem }}</div>
+                            <div class="col-6 mb-2">{{ form.etiqueta.label_tag }} {{ form.etiqueta }}</div>
+                        </div>
+
+                        <hr>
+                        <h6 class="text-secondary"><small>Taxas e Impostos</small></h6>
+                        <div class="mb-2">{{ form.das_mei.label_tag }} {{ form.das_mei }}</div>
+                        <div class="mb-2">{{ form.taxas_bancarias.label_tag }} {{ form.taxas_bancarias }}</div>
+
+                        <div class="mb-3 mt-3">
+                            {{ form.outros_variaveis.label_tag }}
+                            {{ form.outros_variaveis }}
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100">💾 Salvar Despesas</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white">
+                    <h6 class="m-0 font-weight-bold text-primary">📈 Evolução Diária de Vendas</h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="chartVendas" height="100"></canvas>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-header bg-white">
+                            <h6 class="m-0 font-weight-bold text-primary">💰 Para onde vai o dinheiro?</h6>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="chartCustos" height="200"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card shadow-sm border-0 h-100 bg-white p-3">
+                        <h5 class="text-muted mb-3">Indicadores Extras</h5>
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                ROI (Retorno s/ Investimento)
+                                <span class="badge bg-primary rounded-pill">{{ kpis.roi|floatformat:1 }}%</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Custo da Mercadoria (CMV)
+                                <span class="badge bg-secondary rounded-pill">R$ {{ kpis.custo_total|floatformat:2 }}</span>
+                            </li>
+                             <li class="list-group-item mt-3 alert alert-warning">
+                                <small>💡 <strong>Dica:</strong> Se sua margem estiver abaixo de 20%, revise o preço dos laços ou o gasto com fitas.</small>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-
 </div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+
+<script>
+    // Gráfico de Linha (Vendas por Dia)
+    const ctxVendas = document.getElementById('chartVendas').getContext('2d');
+    if (ctxVendas) { // Verifica se o canvas existe
+        new Chart(ctxVendas, {
+            type: 'line',
+            data: {
+                labels: {{ charts.dias|safe }},
+                datasets: [{
+                    label: 'Vendas (R$)',
+                    data: {{ charts.vendas_dia|safe }},
+                    borderColor: '#4e73df',
+                    backgroundColor: 'rgba(78, 115, 223, 0.05)',
+                    tension: 0.3,
+                    fill: true
+                }]
+            },
+            options: { scales: { y: { beginAtZero: true } } }
+        });
+    }
+
+
+    // Gráfico de Rosca (Custos)
+    const ctxCustos = document.getElementById('chartCustos').getContext('2d');
+    if (ctxCustos) { // Verifica se o canvas existe
+        new Chart(ctxCustos, {
+            type: 'doughnut',
+            data: {
+                labels: {{ charts.custos_labels|safe }},
+                datasets: [{
+                    data: {{ charts.custos_values|safe }},
+                    backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc'],
+                }]
+            },
+            options: { cutout: '70%' }
+        });
+    }
+</script>
 
 
 {% block scripts %}
-<!-- CDN do Chart.js para Gráficos -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .card-kpi { border: none; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); transition: transform 0.2s;}
+        .card-kpi:hover { transform: translateY(-5px); }
+        .bg-gradient-primary { background: linear-gradient(45deg, #4e73df, #224abe); color: white; }
+        .bg-gradient-success { background: linear-gradient(45deg, #1cc88a, #13855c); color: white; }
+        .bg-gradient-info { background: linear-gradient(45deg, #36b9cc, #258391); color: white; }
+        .bg-gradient-warning { background: linear-gradient(45deg, #f6c23e, #dda20a); color: white; }
+    </style>
+
+
 <link rel="stylesheet" href="{% static 'css/financeiro.css' %}">
 <script src="{% static 'js/financeiro.js' %}"></script>
 
