@@ -4,14 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="887f3ea7-6749-4b04-b6aa-5711d566189f" name="Changes" comment="tela financeiro base">
+    <list default="true" id="887f3ea7-6749-4b04-b6aa-5711d566189f" name="Changes" comment="tela financeiro melhorada">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/finance/app/forms.py" beforeDir="false" afterPath="$PROJECT_DIR$/finance/app/forms.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/finance/app/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/finance/app/models.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/finance/app/static/js/financeiro.js" beforeDir="false" afterPath="$PROJECT_DIR$/finance/app/static/js/financeiro.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/finance/app/templates/financeiro.html" beforeDir="false" afterPath="$PROJECT_DIR$/finance/app/templates/financeiro.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/finance/app/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/finance/app/views.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/finance/db.sqlite3" beforeDir="false" afterPath="$PROJECT_DIR$/finance/db.sqlite3" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -230,7 +226,15 @@
       <option name="project" value="LOCAL" />
       <updated>1764430906329</updated>
     </task>
-    <option name="localTasksCounter" value="19" />
+    <task id="LOCAL-00019" summary="tela financeiro melhorada">
+      <option name="closed" value="true" />
+      <created>1764432941036</created>
+      <option name="number" value="00019" />
+      <option name="presentableId" value="LOCAL-00019" />
+      <option name="project" value="LOCAL" />
+      <updated>1764432941036</updated>
+    </task>
+    <option name="localTasksCounter" value="20" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -251,6 +255,7 @@
     <MESSAGE value="Correção do delete de produto no estoque" />
     <MESSAGE value="correção cálculo cadastrar_produto.html" />
     <MESSAGE value="tela financeiro base" />
-    <option name="LAST_COMMIT_MESSAGE" value="tela financeiro base" />
+    <MESSAGE value="tela financeiro melhorada" />
+    <option name="LAST_COMMIT_MESSAGE" value="tela financeiro melhorada" />
   </component>
 </project>
