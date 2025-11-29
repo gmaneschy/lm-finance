@@ -3,7 +3,8 @@ from django.utils import timezone
 from django.db import transaction
 from django.shortcuts import get_object_or_404
 from .forms import MateriaPrimaForm, CompraMateriaPrimaForm
-from .models import Produto, Estoque, MateriaPrima, MaterialUsado, CompraMateriaPrima, CustoFixo, Venda, LancamentoFinanceiro, Venda, ItemVenda
+from .models import Produto, Estoque, MateriaPrima, MaterialUsado, CompraMateriaPrima, CustoFixo, Venda, \
+    LancamentoFinanceiro, Venda, ItemVenda, CustoFixoMensal, MetasFinanceiras
 from .forms import ProdutoForm, MaterialUsadoForm, CustoFixoForm
 from django.forms import modelformset_factory
 from django.contrib import messages
@@ -13,7 +14,7 @@ import json
 from django.views.decorators.csrf import csrf_exempt
 from datetime import datetime
 import calendar
-from django.db.models import Sum, F
+from django.db.models import Sum, F, ExpressionWrapper, DecimalField
 
 
 # Create your views here.
@@ -522,19 +523,90 @@ def api_salvar_venda(request):
 
 
 def financeiro(request):
-    """
-    Visualização simples do financeiro para teste
-    """
-    lancamentos = LancamentoFinanceiro.objects.all().order_by('-data', '-id')
+    # 1. Definir o período (Mês Atual como padrão)
+    hoje = timezone.localdate()
+    # Pega o primeiro dia do mês atual
+    primeiro_dia_mes = hoje.replace(day=1)
+    # Calcula o último dia do mês (para garantir a inclusão de todos os dados)
+    proximo_mes = (primeiro_dia_mes + timezone.timedelta(days=32)).replace(day=1)
+    ultimo_dia_mes = proximo_mes - timezone.timedelta(days=1)
 
-    total_entradas = lancamentos.filter(tipo='ENTRADA').aggregate(Sum('valor'))['valor__sum'] or 0
-    total_saidas = lancamentos.filter(tipo='SAIDA').aggregate(Sum('valor'))['valor__sum'] or 0
-    saldo = total_entradas - total_saidas
+    # 2. Dados de Receita
+    vendas_mes = Venda.objects.filter(
+        data_venda__gte=primeiro_dia_mes,
+        data_venda__lte=ultimo_dia_mes
+    )
+    faturamento_bruto_mensal = vendas_mes.aggregate(Sum('valor_total'))['valor_total__sum'] or Decimal('0.00')
+    total_vendas = vendas_mes.count()
+
+    # 3. Dados de Custo (Busca ou cria o registro de Custos Fixos/Variáveis para o mês)
+    try:
+        custo_mensal = CustoFixoMensal.objects.get(data_referencia=primeiro_dia_mes)
+    except CustoFixoMensal.DoesNotExist:
+        # Se não existir, cria um registro padrão (que pode ser editado no Admin)
+        custo_mensal = CustoFixoMensal(data_referencia=primeiro_dia_mes)
+        custo_mensal.save()
+
+    custo_variavel_total = custo_mensal.custo_variavel_total
+    custo_fixo_total = custo_mensal.custo_fixo_total  # DAS MEI + Taxas
+
+    # 4. Cálculo do Custo de Mercadoria Vendida (CMV) - Baseado nos Snapshots de Custo do ItemVenda
+
+    # Adicionando uma anotação para calcular o Custo Total do ItemVenda
+    itens_vendidos_mes = ItemVenda.objects.filter(
+        venda__data_venda__gte=primeiro_dia_mes,
+        venda__data_venda__lte=ultimo_dia_mes
+    ).annotate(
+        custo_total_item=ExpressionWrapper(
+            F('custo_unitario_snapshot') * F('quantidade'),
+            output_field=DecimalField()
+        )
+    )
+
+    cmv = itens_vendidos_mes.aggregate(Sum('custo_total_item'))['custo_total_item__sum'] or Decimal('0.00')
+
+    # 5. Cálculos dos Resultados (Conforme a Planilha)
+
+    # O Custo Variável Total deve incluir o CMV (Matéria-Prima) + Outros custos variáveis (Energia, etc.)
+    custo_variavel_total_total = custo_variavel_total + cmv
+
+    lucro_bruto = faturamento_bruto_mensal - custo_variavel_total_total
+    lucro_liquido = lucro_bruto - custo_fixo_total  # Subtraindo DAS MEI e Taxas (Custos Fixos)
+
+    margem_lucro_percentual = (lucro_liquido / faturamento_bruto_mensal) * 100 if faturamento_bruto_mensal else Decimal(
+        '0.00')
+    ticket_medio = faturamento_bruto_mensal / total_vendas if total_vendas > 0 else Decimal('0.00')
+
+    # 6. Dados para Tabela de Produtos Vendidos no Mês
+    # Agrupa por produto para mostrar o volume vendido e o faturamento por produto
+    produtos_vendidos = itens_vendidos_mes.values(
+        'produto__nome',
+        'produto__valor_venda'
+    ).annotate(
+        total_vendido=Sum('quantidade'),
+        faturamento_produto=Sum('subtotal'),
+        custo_produto=Sum('custo_total_item')
+    ).order_by('-total_vendido')
+
+    # 7. Metas (Apenas para exibição - Metas para o mês atual)
+    try:
+        metas = MetasFinanceiras.objects.get(data_referencia=primeiro_dia_mes)
+    except MetasFinanceiras.DoesNotExist:
+        metas = None  # Se não houver meta, exibe 'N/A'
 
     context = {
-        'lancamentos': lancamentos,
-        'total_entradas': total_entradas,
-        'total_saidas': total_saidas,
-        'saldo': saldo
+        'primeiro_dia_mes': primeiro_dia_mes,
+        'faturamento_bruto_mensal': faturamento_bruto_mensal,
+        'cmv': cmv,
+        'custo_variavel_outros': custo_mensal.custo_variavel_total,
+        'custo_variavel_total_total': custo_variavel_total_total,
+        'custo_fixo_total': custo_fixo_total,  # DAS MEI + Taxas
+        'lucro_bruto': lucro_bruto,
+        'lucro_liquido': lucro_liquido,
+        'margem_lucro_percentual': margem_lucro_percentual,
+        'total_vendas': total_vendas,
+        'ticket_medio': ticket_medio,
+        'produtos_vendidos': produtos_vendidos,
+        'metas': metas,
     }
     return render(request, "financeiro.html", context)

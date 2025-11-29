@@ -2,6 +2,7 @@ from django.db import models
 from django.utils import timezone
 from decimal import Decimal
 
+
 # Create your models here.
 class MateriaPrima(models.Model):
     C_CATEGORIA = [
@@ -54,7 +55,7 @@ class Produto(models.Model):
     nome = models.CharField(max_length=100)
     categoria = models.CharField(max_length=10, choices=CATEGORIAS)
     quantidade_em_estoque = models.PositiveIntegerField(default=0)
-    custo_fixo_total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    custo_fixo_total = models.DecimalField(max_digits=10, decimal_places=2, default=0)  # Custo fixo UNITÁRIO
     valor_venda = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     lucro_por_venda = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     data_cadastro = models.DateField(default=timezone.now)
@@ -127,12 +128,54 @@ class CustoFixo(models.Model):
         return sum([
             self.energia, self.cola, self.isqueiro,
             self.das_mei, self.taxas_bancarias,
-            # INCLUINDO NOVOS CAMPOS NO CÁLCULO
             self.papeleta, self.embalagem, self.etiqueta
         ])
 
     def __str__(self):
-        return f"Custo Fixo Total: R$ {self.custo_fixo_total:.2f}"
+        return f"Custo Fixo Total Unitário: R$ {self.custo_fixo_total:.2f}"
+
+
+# NOVO MODELO: CUSTO FIXO MENSAL para registro de despesas reais (Conforme planilha)
+class CustoFixoMensal(models.Model):
+    """
+    Registra a despesa REAL de custos fixos no mês de referência.
+    Usado para calcular o Lucro Líquido mensal.
+    """
+    data_referencia = models.DateField(
+        unique=True,
+        help_text="Primeiro dia do mês ao qual este custo fixo se refere (Ex: 2025-01-01)"
+    )
+    energia = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    cola = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    isqueiro = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    das_mei = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    taxas_bancarias = models.DecimalField(max_digits=10, decimal_places=2, default=0)  # Taxas da maquininha
+    papeleta = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    embalagem = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    etiqueta = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    # Novo campo para custos variáveis que não são matéria-prima (Frete, Marketing)
+    outros_variaveis = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+
+    @property
+    def custo_variavel_total(self):
+        """Calcula a soma de todos os custos variáveis listados na planilha (energia, papelaria, etc.)"""
+        return sum([
+            self.energia, self.cola, self.isqueiro,
+            self.papeleta, self.embalagem, self.etiqueta,
+            self.outros_variaveis
+        ])
+
+    @property
+    def custo_fixo_total(self):
+        """Calcula a soma de custos fixos MEI (DAS MEI e Taxas)"""
+        return self.das_mei + self.taxas_bancarias
+
+    def __str__(self):
+        return f"Custos de {self.data_referencia.strftime('%B/%Y')} - Variável: R$ {self.custo_variavel_total:.2f}"
+
+    class Meta:
+        verbose_name = "Custo Mensal (Variável e Fixo)"
+        verbose_name_plural = "Custos Mensais (Variáveis e Fixos)"
 
 
 class Estoque(models.Model):
@@ -186,9 +229,20 @@ class ItemVenda(models.Model):
     quantidade = models.PositiveIntegerField(default=1)
     valor_unitario = models.DecimalField(max_digits=10, decimal_places=2)
     subtotal = models.DecimalField(max_digits=10, decimal_places=2)
+    # Novo campo para armazenar o custo do produto no momento da venda (snapshot)
+    custo_unitario_snapshot = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0,
+        help_text="Custo do produto no momento da venda (para relatórios)"
+    )
 
     def save(self, *args, **kwargs):
         self.subtotal = self.quantidade * self.valor_unitario
+        # Se for um item novo, registra o custo do produto no momento (snapshot)
+        if not self.pk and self.produto:
+            # Usando o custo total do produto no momento da venda
+            self.custo_unitario_snapshot = self.produto.custo_total
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -221,3 +275,26 @@ class LancamentoFinanceiro(models.Model):
 
     def __str__(self):
         return f"{self.get_tipo_display()} - {self.descricao} - R$ {self.valor}"
+
+
+# NOVO MODELO: Metas Financeiras (Recomendação MEI)
+class MetasFinanceiras(models.Model):
+    """
+    Armazena as metas mensais para acompanhamento de desempenho.
+    """
+    data_referencia = models.DateField(
+        unique=True,
+        help_text="Primeiro dia do mês ao qual a meta se refere (Ex: 2025-01-01)"
+    )
+    # Limite MEI (anual R$ 81.000,00 - mensal R$ 6.750,00)
+    meta_faturamento_mensal = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=Decimal('6750.00'),
+        help_text="Meta mensal de faturamento (Limite MEI é R$ 6.750,00)"
+    )
+    meta_lucro_liquido = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    meta_quantidade_vendas = models.PositiveIntegerField(default=0)
+
+    def __str__(self):
+        return f"Metas para {self.data_referencia.strftime('%B/%Y')}"

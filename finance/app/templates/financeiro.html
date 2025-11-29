@@ -1,13 +1,138 @@
 {% extends "base.html" %}
 {% load static %}
-{% block title %}Sistema Financeiro - Financeiro{% endblock %}
+{% load humanize %}
+{% load l10n %} <!-- NOVO: Carrega o filtro 'unlocalize' para uso nos scripts JS -->
+
+{% block title %}Dashboard Financeiro{% endblock %}
+
 {% block content %}
 
-    <h1 class="titulo">📊 Painel Financeiro</h1>
+<div class="container mx-auto p-4 md:p-8">
+    <h1 class="titulo text-3xl font-extrabold text-indigo-700 mb-2">📊 Dashboard Financeiro</h1>
+    <p class="text-gray-500 mb-6">Resultados consolidados para o mês de {{ primeiro_dia_mes|date:"F/Y" }}.</p>
+
+    <!-- Indicadores de Lucratividade (Planilha: Receitas e Resultados) -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+
+        <!-- Faturamento Bruto Mensal -->
+        <div class="bg-white p-6 rounded-xl shadow-lg border-l-4 border-indigo-500 transition hover:shadow-xl">
+            <p class="text-sm font-medium text-gray-500">Faturamento Bruto Mensal</p>
+            <p class="text-3xl font-bold text-gray-900 mt-1">R$ {{ faturamento_bruto_mensal|floatformat:2|intcomma }}</p>
+            {% if metas and faturamento_bruto_mensal and metas.meta_faturamento_mensal %}
+            <p class="text-xs text-gray-400 mt-2">Meta: R$ {{ metas.meta_faturamento_mensal|floatformat:2|intcomma }}</p>
+            {% endif %}
+        </div>
+
+        <!-- Lucro Bruto -->
+        <div class="bg-white p-6 rounded-xl shadow-lg border-l-4 border-emerald-500 transition hover:shadow-xl">
+            <p class="text-sm font-medium text-gray-500">Lucro Bruto (Faturamento - Custo Variável)</p>
+            <p class="text-3xl font-bold text-emerald-600 mt-1">R$ {{ lucro_bruto|floatformat:2|intcomma }}</p>
+        </div>
+
+        <!-- Lucro Líquido -->
+        <div class="bg-white p-6 rounded-xl shadow-lg border-l-4 border-teal-500 transition hover:shadow-xl">
+            <p class="text-sm font-medium text-gray-500">Lucro Líquido (Lucro Bruto - Custo Fixo)</p>
+            <p class="text-3xl font-bold text-teal-600 mt-1">R$ {{ lucro_liquido|floatformat:2|intcomma }}</p>
+        </div>
+
+        <!-- Margem de Lucro % -->
+        <div class="bg-white p-6 rounded-xl shadow-lg border-l-4 border-blue-500 transition hover:shadow-xl">
+            <p class="text-sm font-medium text-gray-500">Margem de Lucro Líquido (%)</p>
+            <p class="text-3xl font-bold text-blue-600 mt-1">{{ margem_lucro_percentual|floatformat:2 }}%</p>
+            {% if metas and metas.meta_lucro_liquido %}
+            <p class="text-xs text-gray-400 mt-2">Meta: R$ {{ metas.meta_lucro_liquido|floatformat:2|intcomma }}</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Seção de Custos e Ticket Médio -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+
+        <!-- Custos Detalhados -->
+        <div class="bg-white p-6 rounded-xl shadow-lg lg:col-span-2">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">Detalhamento dos Custos Mensais</h2>
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                <p class="text-gray-700"><span class="font-semibold">Custo de Matéria-Prima (CMV):</span> R$ {{ cmv|floatformat:2|intcomma }}</p>
+                <p class="text-gray-700"><span class="font-semibold">Outros Variáveis (Luz, Papelaria):</span> R$ {{ custo_variavel_outros|floatformat:2|intcomma }}</p>
+                <p class="text-gray-700"><span class="font-semibold text-red-600">Total Variável (A):</span> R$ {{ custo_variavel_total_total|floatformat:2|intcomma }}</p>
+                <p class="text-gray-700"><span class="font-semibold">Custo Fixo (DAS MEI, Taxas):</span> R$ {{ custo_fixo_total|floatformat:2|intcomma }}</p>
+            </div>
+            <p class="mt-4 text-sm text-gray-500">O Lucro Líquido é calculado por: Faturamento Bruto - (A) - Custo Fixo.</p>
+        </div>
+
+        <!-- Indicadores Rápidos -->
+        <div class="bg-white p-6 rounded-xl shadow-lg border-l-4 border-yellow-500">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">Indicadores Chave</h2>
+            <p class="text-gray-700 mb-2">
+                <span class="font-semibold">Número de Vendas:</span> {{ total_vendas }}
+                {% if metas and metas.meta_quantidade_vendas %}
+                (Meta: {{ metas.meta_quantidade_vendas }})
+                {% endif %}
+            </p>
+            <p class="text-gray-700 mb-2">
+                <span class="font-semibold">Ticket Médio:</span> R$ {{ ticket_medio|floatformat:2|intcomma }}
+            </p>
+            <p class="text-gray-700 mb-2">
+                <span class="font-semibold">Ponto de Equilíbrio:</span> Cálculo de P.E. requer dados anuais. (Exibir no JS/Próxima etapa)
+            </p>
+        </div>
+
+    </div>
+
+    <!-- Tabela de Produtos Vendidos no Mês -->
+    <div class="bg-white p-6 rounded-xl shadow-lg mb-8">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4">Produtos Mais Vendidos no Mês</h2>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Produto</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Qtd. Vendida</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Faturamento</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Custo (CMV)</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Lucro Bruto (Produto)</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for produto in produtos_vendidos %}
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ produto.produto__nome }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ produto.total_vendido }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">R$ {{ produto.faturamento_produto|floatformat:2|intcomma }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-red-500">R$ {{ produto.custo_produto|floatformat:2|intcomma }}</td>
+
+                        {# Usando o add de forma indireta para simular subtração (Lucro = Faturamento - Custo) #}
+                        {% with lucro_produto=produto.faturamento_produto|add:"-"|add:produto.custo_produto %}
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-emerald-600">R$ {{ lucro_produto|floatformat:2|intcomma }}</td>
+                        {% endwith %}
+
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">Nenhum produto vendido no período.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Gráfico de Distribuição de Custos -->
+    <div class="bg-white p-6 rounded-xl shadow-lg mb-8">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4">Distribuição de Receita vs. Custos</h2>
+        <div class="chart-container h-96 w-full mx-auto">
+            <canvas id="revenueCostChart"></canvas>
+        </div>
+    </div>
+
+</div>
+
 
 {% block scripts %}
-
+<!-- CDN do Chart.js para Gráficos -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
 <link rel="stylesheet" href="{% static 'css/financeiro.css' %}">
 <script src="{% static 'js/financeiro.js' %}"></script>
+
 {% endblock %}
 {% endblock %}
