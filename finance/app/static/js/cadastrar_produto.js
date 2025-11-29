@@ -279,9 +279,68 @@ document.addEventListener("DOMContentLoaded", function() {
         console.log("========================================");
     }
 
-    // ========== INICIALIZAÇÃO ==========
+    // ===============================================
+    // ========== FUNÇÃO: EXIBIR TOAST/MENSAGEM ==========
+    // ===============================================
+
+    /**
+     * Exibe uma mensagem de toast que desaparece automaticamente.
+     * @param {string} message - O texto da mensagem.
+     * @param {string} type - 'success' ou 'error'.
+     * @param {number} duration - Duração em milissegundos (padrão 2000ms).
+     */
+    function showToast(message, type, duration = 2000) {
+        const toast = document.getElementById('toast-message');
+        const toastText = document.getElementById('toast-text');
+
+        if (!toast || !toastText) {
+            console.error("Elemento Toast não encontrado.");
+            return;
+        }
+
+        toastText.textContent = message;
+        toast.classList.remove('success', 'error');
+        toast.classList.add(type);
+
+        // 1. Mostrar o toast
+        toast.style.display = 'block';
+        // Força o reflow para garantir a transição de opacidade
+        void toast.offsetWidth;
+        toast.classList.add('show');
+
+        // 2. Esconder o toast após a duração
+        setTimeout(() => {
+            toast.classList.remove('show');
+            // Esconde completamente após a transição de fade-out
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 500); // 500ms é o tempo de transição do CSS
+        }, duration);
+    }
+
+
+    // ========== INICIALIZAÇÃO E TRATAMENTO DE MENSAGENS ==========
     console.log("🎬 Inicializando sistema");
     aplicarEventos();
     calcularTudo();
+
+    // ========== VERIFICA MENSAGENS DO DJANGO E EXIBE TOAST ==========
+    // Procura por mensagens do Django (geralmente em ul.messagelist li)
+    document.querySelectorAll('.messagelist li').forEach(messageEl => {
+        const messageText = messageEl.textContent.trim();
+        const isSuccess = messageEl.classList.contains('success');
+        const isError = messageEl.classList.contains('error');
+
+        if (isSuccess) {
+            showToast(messageText.replace('✅', ''), 'success', 3000); // Exibe por 3 segundos
+        } else if (isError) {
+            // Mensagens de erro de estoque são longas, exibe por mais tempo
+            showToast(messageText.replace('❌', ''), 'error', 6000);
+        }
+
+        // Remove a mensagem do DOM original para que só o toast apareça
+        messageEl.remove();
+    });
+
     console.log("✅ Sistema pronto!");
 });

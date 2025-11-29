@@ -2,6 +2,8 @@
 {% load static %}
 {% block title %}Sistema Financeiro - Cadastro de Produto{% endblock %}
 {% block content %}
+
+<div id="toast-message" class="toast-message" style="display: none;"><p id="toast-text">{% if messages %}<ul class="messagelist" style="display: none;">{% for message in messages %}<li {% if message.tags %} class="{{ message.tags }}" {% endif %}>{{ message }}</li>{% endfor %}</ul>{% endif %}</p></div>
 <div class="cadastro-produto-container">
     <h1 class="titulo">🎀 Cadastrar Produto</h1>
 

@@ -73,6 +73,14 @@ def cadastrar_produto(request):
         queryset=MaterialUsado.objects.none()
     )
 
+    # Prepara o contexto base, incluindo dados do POST para manter os campos preenchidos em caso de erro
+    context = {
+        'produto_form': produto_form,
+        'formset': formset,
+        'custo_fixo_form': custo_fixo_form,
+        'materiais_data_json': json.dumps({}),  # Será preenchido abaixo ou no final
+    }
+
     # Processa o POST
     if request.method == 'POST':
         print("\n" + "=" * 60)
@@ -96,85 +104,175 @@ def cadastrar_produto(request):
         if not custo_fixo_valido:
             print("❌ Erros dos custos fixos:", custo_fixo_form.errors)
 
-        # Se tudo válido, salva
+        # Se tudo válido, executa a verificação e o salvamento
         if produto_valido and formset_valido and custo_fixo_valido:
-            try:
-                # 1. Salva o custo fixo (atualiza se já existir)
-                custo_fixo = custo_fixo_form.save()
-                print(f"💰 Custo fixo salvo: R$ {custo_fixo.custo_fixo_total:.2f}")
 
-                # 2. Salva o produto
-                produto = produto_form.save(commit=False)
-                produto.custo_fixo_total = custo_fixo.custo_fixo_total
-                produto.save()
-                print(f"📦 Produto salvo: {produto.nome}")
+            # Obtém os dados dos formulários
+            produto_data = produto_form.cleaned_data
 
-                # 3. Salva os materiais usados
-                materiais_salvos = 0
-                for form in formset:
-                    if form.cleaned_data and not form.cleaned_data.get('DELETE', False):
-                        material = form.save(commit=False)
-                        material.produto = produto
-                        material.save()
-                        materiais_salvos += 1
+            # A quantidade de produtos que o usuário está cadastrando no estoque
+            quantidade_de_produtos = produto_data.get('quantidade_em_estoque', 0)
 
-                        print(f"   🎨 Material: {material.compra_materia_prima.materia_prima.nome}")
-                        print(f"      Quantidade: {material.qtd_material_usado} {material.get_tipo_unidade_display()}")
-                        print(f"      Valor unitário: R$ {material.valor_unitario:.4f}")
-                        print(f"      Valor total: R$ {material.valor_total:.2f}")
+            # =========================================================
+            # 🎯 NOVO PASSO: VERIFICAÇÃO DE ESTOQUE INSUFICIENTE
+            # =========================================================
+            estoque_suficiente = True
 
-                print(f"✅ {materiais_salvos} materiais salvos")
+            # Loop sobre os materiais para verificar a demanda total
+            for form in formset:
+                if form.cleaned_data and not form.cleaned_data.get('DELETE', False):
+                    material_data = form.cleaned_data
 
-                # 4. Cria ou atualiza o estoque
-                estoque, criado = Estoque.objects.get_or_create(
-                    produto=produto,
-                    defaults={'quantidade_produto': produto.quantidade_em_estoque}
-                )
+                    compra = material_data.get('compra_materia_prima')
+                    qtd_material_por_produto = material_data.get('qtd_material_usado')  # Qtd. por UM produto
+                    tipo_unidade = material_data.get('tipo_unidade')
 
-                if not criado:
-                    estoque.quantidade_produto = produto.quantidade_em_estoque
-                    estoque.save()
+                    if compra and qtd_material_por_produto and quantidade_de_produtos:
 
-                estoque.atualizar_valores()
-                print(f"📊 Estoque {'criado' if criado else 'atualizado'}")
+                        # Calcula a demanda TOTAL para o lote de produtos
+                        demanda_total = qtd_material_por_produto * Decimal(quantidade_de_produtos)
 
-                # Resumo final
-                print("\n" + "-" * 60)
-                print(f"💵 RESUMO DO PRODUTO")
-                print(f"   Nome: {produto.nome}")
-                print(f"   Custo materiais: R$ {sum([m.valor_total for m in produto.materiais_usados.all()]):.2f}")
-                print(f"   Custos fixos: R$ {produto.custo_fixo_total:.2f}")
-                print(f"   Custo total: R$ {produto.custo_total:.2f}")
-                print(f"   Valor de venda: R$ {produto.valor_venda:.2f}")
-                print(f"   Lucro: R$ {produto.lucro_por_venda:.2f}")
-                print("-" * 60)
+                        estoque_atual = Decimal(0)
 
-                messages.success(
-                    request,
-                    f'✅ Produto "{produto.nome}" cadastrado com sucesso!'
-                )
+                        # Identifica o campo de estoque e o valor atual
+                        if tipo_unidade == 'CM':
+                            estoque_atual = compra.unidade_em_cm or Decimal(0)
+                            unidade_str = "CM"
+                        else:  # QUANTIDADE
+                            estoque_atual = compra.unidade_em_quantidade or Decimal(0)
+                            unidade_str = "UNIDADES"
 
-                print("=" * 60)
-                print("✅ CADASTRO CONCLUÍDO COM SUCESSO")
-                print("=" * 60 + "\n")
+                        # Verifica se o estoque é suficiente
+                        if demanda_total > estoque_atual:
+                            estoque_suficiente = False
 
-                # 🔹 Redireciona, mas mantém o último custo fixo (pois foi salvo)
-                return redirect('cadastrar_produto')
+                            # Mensagem de erro detalhada
+                            messages.error(
+                                request,
+                                f'❌ ESTOQUE INSUFICIENTE: Você precisa de {demanda_total:.2f} {unidade_str} de "{compra.materia_prima.nome}", mas só há {estoque_atual:.2f} {unidade_str} em estoque.'
+                            )
+                            break  # Interrompe o loop
 
-            except Exception as e:
-                print(f"\n❌ ERRO ao salvar: {e}")
-                import traceback
-                traceback.print_exc()
+            # Trava o cadastro se o estoque for insuficiente
+            if not estoque_suficiente:
+                print("❌ CADASTRO BLOQUEADO: Estoque insuficiente.")
 
-                messages.error(
-                    request,
-                    f'❌ Erro ao cadastrar produto: {str(e)}'
-                )
+                # Para manter a view funcional e retornar o JSON dos materiais em caso de erro
+                # O código de preparo do JSON é movido para dentro do if/else
+                pass  # Prossegue para o bloco try/except ou para o render final
 
-    # ========== PREPARA DADOS DOS MATERIAIS ==========
+            # =========================================================
+            # 🎯 FIM DA VERIFICAÇÃO DE ESTOQUE
+            # =========================================================
+
+            # Se a verificação de estoque passou, tenta salvar
+            if estoque_suficiente:
+                try:
+                    # 1. Salva o custo fixo (atualiza se já existir)
+                    custo_fixo = custo_fixo_form.save()
+                    print(f"💰 Custo fixo salvo: R$ {custo_fixo.custo_fixo_total:.2f}")
+
+                    # 2. Salva o produto
+                    produto = produto_form.save(commit=False)
+                    produto.custo_fixo_total = custo_fixo.custo_fixo_total
+                    produto.save()
+                    print(f"📦 Produto salvo: {produto.nome}")
+
+                    # 3. Salva os materiais usados E SUBTRAI A DEMANDA TOTAL DO ESTOQUE
+                    materiais_salvos = 0
+                    for form in formset:
+                        if form.cleaned_data and not form.cleaned_data.get('DELETE', False):
+                            material = form.save(commit=False)
+                            material.produto = produto
+                            material.save()
+                            materiais_salvos += 1
+
+                            # --- Lógica de Subtração (Usando demanda_total) ---
+                            compra = material.compra_materia_prima
+                            quantidade_usada_por_produto = material.qtd_material_usado
+
+                            # Recalcula a demanda total (a mesma usada na verificação)
+                            demanda_total = quantidade_usada_por_produto * Decimal(quantidade_de_produtos)
+
+                            print(
+                                f"   📉 Estoque de compra #{compra.id} antes: CM={compra.unidade_em_cm}, QTD={compra.unidade_em_quantidade}")
+
+                            if material.tipo_unidade == 'CM':
+                                compra.unidade_em_cm = F('unidade_em_cm') - demanda_total
+                                print(
+                                    f"   ➖ Subtraindo {demanda_total:.2f} CM (Total para {quantidade_de_produtos} produtos)")
+                            else:  # QUANTIDADE
+                                compra.unidade_em_quantidade = F('unidade_em_quantidade') - demanda_total
+                                print(
+                                    f"   ➖ Subtraindo {demanda_total:.2f} UNIDADES (Total para {quantidade_de_produtos} produtos)")
+
+                            compra.save()
+                            compra.refresh_from_db()
+                            print(
+                                f"   ✅ Estoque de compra #{compra.id} atualizado: CM={compra.unidade_em_cm}, QTD={compra.unidade_em_quantidade}")
+                            # ----------------------------------------------------
+
+                            print(f"   🎨 Material: {material.compra_materia_prima.materia_prima.nome}")
+                            print(
+                                f"      Quantidade: {material.qtd_material_usado} {material.get_tipo_unidade_display()}")
+                            print(f"      Valor unitário: R$ {material.valor_unitario:.4f}")
+                            print(f"      Valor total: R$ {material.valor_total:.2f}")
+
+                    print(f"✅ {materiais_salvos} materiais salvos e estoque atualizado")
+
+                    # 4. Cria ou atualiza o estoque
+                    estoque, criado = Estoque.objects.get_or_create(
+                        produto=produto,
+                        defaults={'quantidade_produto': produto.quantidade_em_estoque}
+                    )
+
+                    if not criado:
+                        estoque.quantidade_produto = produto.quantidade_em_estoque
+                        estoque.save()
+
+                    estoque.atualizar_valores()
+                    print(f"📊 Estoque {'criado' if criado else 'atualizado'}")
+
+                    # Resumo final
+                    print("\n" + "-" * 60)
+                    print(f"💵 RESUMO DO PRODUTO")
+                    print(f"   Nome: {produto.nome}")
+                    print(f"   Custo materiais: R$ {sum([m.valor_total for m in produto.materiais_usados.all()]):.2f}")
+                    print(f"   Custos fixos: R$ {produto.custo_fixo_total:.2f}")
+                    print(f"   Custo total: R$ {produto.custo_total:.2f}")
+                    print(f"   Valor de venda: R$ {produto.valor_venda:.2f}")
+                    print(f"   Lucro: R$ {produto.lucro_por_venda:.2f}")
+                    print("-" * 60)
+
+                    messages.success(
+                        request,
+                        f'✅ Produto "{produto.nome}" cadastrado com sucesso!'
+                    )
+
+                    print("=" * 60)
+                    print("✅ CADASTRO CONCLUÍDO COM SUCESSO")
+                    print("=" * 60 + "\n")
+
+                    # 🔹 Redireciona, mas mantém o último custo fixo (pois foi salvo)
+                    return redirect('cadastrar_produto')
+
+                except Exception as e:
+                    print(f"\n❌ ERRO ao salvar: {e}")
+                    import traceback
+                    traceback.print_exc()
+
+                    messages.error(
+                        request,
+                        f'❌ Erro ao cadastrar produto: {str(e)}'
+                    )
+            # Se o estoque não era suficiente, o código continua para o render abaixo.
+
+    # ========== PREPARA DADOS DOS MATERIAIS PARA O JAVASCRIPT ==========
     materiais_data = {}
 
     try:
+        # Garante que os dados sejam carregados, mesmo após um erro de POST,
+        # para que o JS possa recalcular e manter os valores na tela.
         compras = CompraMateriaPrima.objects.select_related('materia_prima').all()
 
         for compra in compras:
@@ -191,16 +289,11 @@ def cadastrar_produto(request):
         print(f"📦 {len(materiais_data)} materiais disponíveis para seleção")
 
     except Exception as e:
-        print(f"❌ Erro ao carregar materiais: {e}")
+        print(f"❌ Erro ao carregar materiais para JS: {e}")
         materiais_data = {}
 
-    # Contexto para o template
-    context = {
-        'produto_form': produto_form,
-        'formset': formset,
-        'custo_fixo_form': custo_fixo_form,
-        'materiais_data_json': json.dumps(materiais_data),
-    }
+    # Atualiza o contexto com os dados dos materiais
+    context['materiais_data_json'] = json.dumps(materiais_data)
 
     return render(request, 'cadastrar_produto.html', context)
 

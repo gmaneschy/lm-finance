@@ -152,34 +152,6 @@ class Estoque(models.Model):
         return f"Estoque de {self.produto.nome}"
 
 
-# models.py (Adicione/Substitua ao final do arquivo)
-
-class LancamentoFinanceiro(models.Model):
-    TIPO_LANCAMENTO = [
-        ('ENTRADA', 'Entrada (Receita)'),
-        ('SAIDA', 'Saída (Despesa)'),
-    ]
-    CATEGORIAS = [
-        ('VENDA', 'Venda de Produtos'),
-        ('COMPRA_MATERIAL', 'Compra de Matéria Prima'),
-        ('CUSTO_FIXO', 'Custos Fixos (Luz, MEI, etc)'),
-        ('OUTROS', 'Outros'),
-    ]
-
-    tipo = models.CharField(max_length=10, choices=TIPO_LANCAMENTO)
-    categoria = models.CharField(max_length=20, choices=CATEGORIAS)
-    descricao = models.CharField(max_length=200)
-    valor = models.DecimalField(max_digits=12, decimal_places=2)
-    data = models.DateField(default=timezone.now)
-
-    # Campo opcional para ligar uma venda a esse lançamento financeiro
-    venda_origem = models.OneToOneField('Venda', on_delete=models.SET_NULL, null=True, blank=True,
-                                        related_name='lancamento_financeiro')
-
-    def __str__(self):
-        return f"{self.get_tipo_display()} - {self.descricao} - R$ {self.valor}"
-
-
 class Venda(models.Model):
     METODOS_PAGAMENTO = [
         ('DINHEIRO', 'Dinheiro'),
@@ -223,3 +195,29 @@ class ItemVenda(models.Model):
         # Adiciona um tratamento para produtos que foram deletados (quando o produto for None)
         nome_produto = self.produto.nome if self.produto else "Produto Deletado (ID Histórico)"
         return f"{self.quantidade}x {nome_produto} (Venda #{self.venda.id})"
+
+
+class LancamentoFinanceiro(models.Model):
+    TIPO_LANCAMENTO = [
+        ('ENTRADA', 'Entrada (Receita)'),
+        ('SAIDA', 'Saída (Despesa)'),
+    ]
+    CATEGORIAS = [
+        ('VENDA', 'Venda de Produtos'),
+        ('COMPRA_MATERIAL', 'Compra de Matéria Prima'),
+        ('CUSTO_FIXO', 'Custos Fixos (Luz, MEI, etc)'),
+        ('OUTROS', 'Outros'),
+    ]
+
+    tipo = models.CharField(max_length=10, choices=TIPO_LANCAMENTO)
+    categoria = models.CharField(max_length=20, choices=CATEGORIAS)
+    descricao = models.CharField(max_length=200)
+    valor = models.DecimalField(max_digits=12, decimal_places=2)
+    data = models.DateField(default=timezone.now)
+
+    # Campo opcional para ligar uma venda a esse lançamento financeiro
+    venda_origem = models.OneToOneField('Venda', on_delete=models.SET_NULL, null=True, blank=True,
+                                        related_name='lancamento_financeiro')
+
+    def __str__(self):
+        return f"{self.get_tipo_display()} - {self.descricao} - R$ {self.valor}"

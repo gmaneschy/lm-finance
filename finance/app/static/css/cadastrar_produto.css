@@ -486,3 +486,64 @@ textarea {
   -webkit-mask-size: 100% 100%;
   mask-size: 100% 100%;
 }
+
+/* =======================================
+   ESTILOS PARA O TOAST DE MENSAGENS
+   ======================================= */
+.toast-message {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%); /* Centraliza o elemento */
+
+    /* Configurações Flexbox para centralizar o conteúdo */
+    /* DISPLAY DEVE SER 'none' POR PADRÃO, mas vamos usar o :not(.show) */
+
+    /* Autoajuste de altura: importante para que o conteúdo não seja empurrado */
+    height: auto;
+
+    /* Outros estilos */
+    padding: 30px 20px; /* Um padding generoso para a caixa */
+    border-radius: 12px;
+    color: white;
+    font-weight: bold;
+    font-size: 1.1em;
+    text-align: center; /* ALINHA O TEXTO INTERNO */
+    max-width: 90%;
+    width: 60%;
+    white-space: pre-wrap;
+
+    z-index: 1000;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
+}
+
+/* Garante que o parágrafo dentro do toast não tenha margens ou paddings */
+.toast-message p {
+    margin: 0;
+    padding: 0;
+    line-height: 1.4; /* Espaçamento entre linhas, pode ajustar */
+}
+
+/* Estilos de cor para o toast */
+.toast-message.success {
+    background-color: #28a745;
+}
+
+.toast-message.error {
+    background-color: #dc3545;
+}
+
+/* Classe que o JS adiciona para mostrar o toast - ATIVA O FLEXBOX AQUI */
+.toast-message.show {
+    opacity: 1;
+    display: flex; /* ATIVA O FLEXBOX QUANDO VISÍVEL */
+    justify-content: center;
+    align-items: center;
+}
+
+/* Regra para garantir que o toast comece e permaneça oculto */
+.toast-message:not(.show) {
+    display: none;
+}

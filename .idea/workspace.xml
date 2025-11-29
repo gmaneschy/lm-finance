@@ -4,10 +4,13 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="887f3ea7-6749-4b04-b6aa-5711d566189f" name="Changes" comment="css ajuste">
+    <list default="true" id="887f3ea7-6749-4b04-b6aa-5711d566189f" name="Changes" comment="correção cálculo cadastrar_produto.html">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/finance/app/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/finance/app/models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/finance/app/static/css/cadastrar_produto.css" beforeDir="false" afterPath="$PROJECT_DIR$/finance/app/static/css/cadastrar_produto.css" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/finance/app/static/js/cadastrar_produto.js" beforeDir="false" afterPath="$PROJECT_DIR$/finance/app/static/js/cadastrar_produto.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/finance/app/templates/cadastrar_produto.html" beforeDir="false" afterPath="$PROJECT_DIR$/finance/app/templates/cadastrar_produto.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/finance/app/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/finance/app/views.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/finance/db.sqlite3" beforeDir="false" afterPath="$PROJECT_DIR$/finance/db.sqlite3" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -203,7 +206,23 @@
       <option name="project" value="LOCAL" />
       <updated>1764263186666</updated>
     </task>
-    <option name="localTasksCounter" value="16" />
+    <task id="LOCAL-00016" summary="correção cálculo cadastrar_produto.html">
+      <option name="closed" value="true" />
+      <created>1764420287481</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1764420287481</updated>
+    </task>
+    <task id="LOCAL-00017" summary="correção cálculo cadastrar_produto.html">
+      <option name="closed" value="true" />
+      <created>1764420295688</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1764420295688</updated>
+    </task>
+    <option name="localTasksCounter" value="18" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -222,6 +241,7 @@
     <MESSAGE value="Cadastro de produto unitário corrigido." />
     <MESSAGE value="Colunas cadastrar_produto.html" />
     <MESSAGE value="Correção do delete de produto no estoque" />
-    <option name="LAST_COMMIT_MESSAGE" value="Correção do delete de produto no estoque" />
+    <MESSAGE value="correção cálculo cadastrar_produto.html" />
+    <option name="LAST_COMMIT_MESSAGE" value="correção cálculo cadastrar_produto.html" />
   </component>
 </project>
