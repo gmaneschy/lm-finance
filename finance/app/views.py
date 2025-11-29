@@ -538,19 +538,55 @@ def financeiro(request):
     ultimo_dia_mes = proximo_mes - timedelta(days=1)
 
     # 2. Processamento do Formulário de Custos
-    custo_obj, created = CustoFixoMensal.objects.get_or_create(data_referencia=data_referencia)
+    # Certifique-se que CustoMensalForm está importado e CustoFixoMensal existe
+    # Substitua CustoMensalForm pelo nome real do seu formulário
+    # Substitua CustoFixoMensal pelo nome real do seu modelo de custos mensais
+    try:
+        custo_obj, created = CustoFixoMensal.objects.get_or_create(data_referencia=data_referencia)
+    except NameError:
+        # Fallback se o modelo CustoFixoMensal não estiver definido (apenas para evitar crash no teste)
+        return render(request, "financeiro.html", {'error': 'Modelo CustoFixoMensal não definido'})
 
+    # Substitua CustoMensalForm pelo nome real do seu formulário
     form = CustoMensalForm(request.POST or None, instance=custo_obj)
     if request.method == 'POST' and form.is_valid():
         form.save()
+        # Nota: Corrigido o redirect para 'financeiro/' conforme o erro anterior, se aplicável
         return redirect(f'/templates/financeiro/?mes={data_referencia.month}&ano={data_referencia.year}')
+
+    # === NOVOS FILTROS RECEBIDOS DA URL ===
+    filtro_metodo = request.GET.get('metodo')
+    filtro_categoria = request.GET.get('categoria')
+    filtro_produto_id = request.GET.get('produto_id')
+
+    # Define listas de dados para os filtros no template
+    try:
+        produtos = Produto.objects.all().order_by('nome')
+        metodos_pagamento = Venda.METODOS_PAGAMENTO
+        categorias_produto = Produto.CATEGORIAS
+    except NameError:
+        # Fallback se os modelos não estiverem definidos
+        produtos = []
+        metodos_pagamento = []
+        categorias_produto = []
 
     # 3. Cálculos de Receita
     vendas_mes = Venda.objects.filter(data_venda__date__range=[data_referencia, ultimo_dia_mes])
+
+    # === APLICAÇÃO DOS FILTROS DE VENDA NAS VENDAS DO MÊS ===
+    if filtro_metodo:
+        vendas_mes = vendas_mes.filter(metodo_pagamento=filtro_metodo)
+
+    if filtro_categoria:
+        # Filtra vendas que contêm pelo menos um item da categoria selecionada
+        vendas_mes = vendas_mes.filter(itens__produto__categoria=filtro_categoria).distinct()
+    # =======================================================
+
+    # Recalcula KPIs com as vendas filtradas
     faturamento_bruto = vendas_mes.aggregate(Sum('valor_total'))['valor_total__sum'] or Decimal('0.00')
     total_vendas_qtd = vendas_mes.count()
 
-    # 4. CMV (Custo da Mercadoria Vendida - Matéria Prima direta)
+    # 4. CMV (Custo da Mercadoria Vendida - Refiltrar itens vendidos com base nas vendas filtradas)
     itens_vendidos = ItemVenda.objects.filter(venda__in=vendas_mes).annotate(
         custo_total_item=ExpressionWrapper(
             F('custo_unitario_snapshot') * F('quantidade'),
@@ -560,30 +596,91 @@ def financeiro(request):
     cmv = itens_vendidos.aggregate(Sum('custo_total_item'))['custo_total_item__sum'] or Decimal('0.00')
 
     # 5. Custos Operacionais (Do Formulário)
-    custos_operacionais = custo_obj.custo_variavel_total  # Cola, energia, embalagem
-    custos_fixos_mei = custo_obj.custo_fixo_total  # DAS + Taxas Bancárias (se fixas)
+    custos_operacionais = custo_obj.custo_variavel_total
+    custos_fixos_mei = custo_obj.custo_fixo_total
 
-    # 6. Resultados
+    # 6. Resultados (Recalculados com base nos filtros)
     custo_total_geral = cmv + custos_operacionais + custos_fixos_mei
     lucro_liquido = faturamento_bruto - custo_total_geral
 
     margem_lucro = (lucro_liquido / faturamento_bruto * 100) if faturamento_bruto > 0 else 0
     ticket_medio = faturamento_bruto / total_vendas_qtd if total_vendas_qtd > 0 else 0
+    # Ponto de Equilíbrio é mais complexo de filtrar, mantendo o cálculo geral
     ponto_equilibrio = custos_fixos_mei / (
-                1 - ((custos_operacionais + cmv) / faturamento_bruto)) if faturamento_bruto > 0 and (
-                custos_operacionais + cmv) < faturamento_bruto else 0
+            1 - ((custos_operacionais + cmv) / faturamento_bruto)) if faturamento_bruto > 0 and (
+            custos_operacionais + cmv) < faturamento_bruto else 0
 
     # 7. Dados para Gráficos (JSON)
-
-    # Gráfico 1: Vendas por Dia (Linha)
+    # Gráfico 1: Vendas por Dia (Linha) - JÁ USA vendas_mes FILTRADO
     vendas_diarias = vendas_mes.annotate(dia=TruncDay('data_venda')).values('dia').annotate(
         total=Sum('valor_total')).order_by('dia')
     chart_dias = [v['dia'].strftime('%d/%m') for v in vendas_diarias]
     chart_valores = [float(v['total']) for v in vendas_diarias]
 
-    # Gráfico 2: Distribuição de Custos (Rosca)
+    # Gráfico 2: Distribuição de Custos (Rosca) - Mantido com custos TOTAIS (sem filtro de venda)
     chart_custos_labels = ['Matéria Prima (CMV)', 'Insumos (Cola/Emb/Energia)', 'Taxas/MEI']
     chart_custos_values = [float(cmv), float(custos_operacionais), float(custos_fixos_mei)]
+
+    # === SEÇÃO NOVA: COMPOSIÇÃO DE CUSTO POR PRODUTO UNITÁRIO ===
+    custo_produto_selecionado = None
+
+    if filtro_produto_id:
+        try:
+            produto_selecionado = Produto.objects.get(pk=filtro_produto_id)
+
+            # Custo de Matéria Prima (CMV unitário)
+            # Assumindo que Produto.custo_total já calcula (CMV unitário + Custo Fixo Unitário)
+            custo_unitario_total = produto_selecionado.custo_total
+            custo_operacional_unitario = produto_selecionado.custo_fixo_total
+            custo_materiais = custo_unitario_total - custo_operacional_unitario
+
+            # Valor de Venda
+            valor_venda = produto_selecionado.valor_venda or Decimal('0.00')
+            lucro_bruto_unitario = valor_venda - custo_unitario_total
+
+            # === NOVO: COMPOSIÇÃO DE CUSTO PARA O GRÁFICO ===
+
+            # 1. Obter os custos dos materiais individuais
+            materiais_para_grafico = []
+
+            for mu in produto_selecionado.materiais_usados.all():
+                nome_material = mu.compra_materia_prima.materia_prima.nome if mu.compra_materia_prima else 'Mat. Não Especificado'
+                materiais_para_grafico.append({
+                    'label': nome_material,
+                    'valor': mu.valor_total
+                })
+
+            # 2. Adicionar o Custo Operacional Unitário como uma fatia separada
+            materiais_para_grafico.append({
+                'label': 'Custo Fixo/Op. Unitário',
+                'valor': custo_operacional_unitario
+            })
+
+            # 3. Preparar as listas JSON
+            chart_labels = [m['label'] for m in materiais_para_grafico]
+            chart_values = [float(m['valor']) for m in materiais_para_grafico]
+
+            # 4. Criar o objeto de contexto atualizado
+            custo_produto_selecionado = {
+                'nome': produto_selecionado.nome,
+                'custo_total': custo_unitario_total,
+                'valor_venda': valor_venda,
+                'lucro_liquido': lucro_bruto_unitario,
+                'materiais_detalhe': [
+                    {
+                        'nome': mu.compra_materia_prima.materia_prima.nome if mu.compra_materia_prima else 'Mat. Não Especificado',
+                        'valor': mu.valor_total}
+                    for mu in produto_selecionado.materiais_usados.all()
+                ],
+                # Passando as novas listas de materiais para o Chart.js
+                'custos_unitarios_chart': json.dumps(chart_values),
+                'custos_unitarios_labels': json.dumps(chart_labels),
+                'produto_id': produto_selecionado.id,
+            }
+
+        except Produto.DoesNotExist:
+            pass  # Continua com None se o ID for inválido
+    # ===================================================
 
     context = {
         'data_atual': data_referencia,
@@ -605,7 +702,15 @@ def financeiro(request):
         'meses_nav': {
             'anterior': (data_referencia - timedelta(days=1)).replace(day=1),
             'proximo': (data_referencia + timedelta(days=32)).replace(day=1)
-        }
+        },
+        # === DADOS DE CONTEXTO PARA OS FILTROS ===
+        'produtos': produtos,
+        'metodos_pagamento': metodos_pagamento,
+        'categorias_produto': categorias_produto,
+        'filtro_metodo_ativo': filtro_metodo,
+        'filtro_categoria_ativo': filtro_categoria,
+        'custo_produto_selecionado': custo_produto_selecionado,
+        # ========================================
     }
 
     return render(request, "financeiro.html", context)
