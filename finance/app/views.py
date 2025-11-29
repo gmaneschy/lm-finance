@@ -714,3 +714,102 @@ def financeiro(request):
     }
 
     return render(request, "financeiro.html", context)
+
+
+@csrf_exempt
+def get_custo_produto_json(request):
+    """Retorna os dados de custo de um produto específico como JSON."""
+    produto_id = request.GET.get('produto_id')
+
+    if not produto_id:
+        return JsonResponse({'success': False, 'message': 'ID do produto não fornecido'}, status=400)
+
+    try:
+        # Reutilize a lógica de busca do produto e cálculo de custos
+        produto_selecionado = Produto.objects.get(pk=produto_id)
+
+        custo_unitario_total = produto_selecionado.custo_total
+        custo_operacional_unitario = produto_selecionado.custo_fixo_total
+
+        valor_venda = produto_selecionado.valor_venda or Decimal('0.00')
+        lucro_bruto_unitario = valor_venda - custo_unitario_total
+
+        # 1. Obter os custos dos materiais individuais
+        materiais_para_grafico = []
+        html_materiais_detalhe = ""  # Variável para construir o HTML dos detalhes
+
+        for mu in produto_selecionado.materiais_usados.all():
+            nome_material = mu.compra_materia_prima.materia_prima.nome if mu.compra_materia_prima else 'Mat. Não Especificado'
+
+            materiais_para_grafico.append({
+                'label': nome_material,
+                'valor': mu.valor_total
+            })
+
+            # Constrói a lista de materiais para o HTML
+            html_materiais_detalhe += f"""
+                <li class="list-group-item d-flex justify-content-between align-items-center py-1">
+                    {nome_material[:30]}
+                    <span class="badge bg-secondary rounded-pill">R$ {mu.valor_total:.2f}</span>
+                </li>
+            """
+
+        # Adicionar o Custo Operacional Unitário
+        materiais_para_grafico.append({
+            'label': 'Custo Fixo/Op. Unitário',
+            'valor': custo_operacional_unitario
+        })
+
+        chart_labels = [m['label'] for m in materiais_para_grafico]
+        chart_values = [float(m['valor']) for m in materiais_para_grafico]
+
+        # 2. Constrói o HTML dos Detalhes (Colunas Direita)
+        html_detalhe = f"""
+            <hr>
+            <div class="row">
+                <div class="col-md-6">
+                    <h6 class="text-secondary">Composição do Custo Unitário ({produto_selecionado.nome})</h6>
+                    <canvas id="chartProdutoCusto" height="200"></canvas>
+                </div>
+                <div class="col-md-6">
+                    <h6 class="text-secondary">Detalhes e Rentabilidade</h6>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Valor de Venda (Preço)
+                            <span class="badge bg-success rounded-pill">R$ {valor_venda:.2f}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            **CUSTO TOTAL (CMV + Fixo)**
+                            <span class="badge bg-danger rounded-pill">R$ {custo_unitario_total:.2f}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center bg-light">
+                            **LUCRO BRUTO UNITÁRIO**
+                            <span class="badge bg-primary rounded-pill">R$ {lucro_bruto_unitario:.2f}</span>
+                        </li>
+                    </ul>
+
+                    <h6 class="mt-3 text-secondary">Matérias-Primas Detalhadas:</h6>
+                    <small class="d-block mb-1">Custo de cada material no produto:</small>
+                    <ul class="list-group">
+                        {html_materiais_detalhe}
+                    </ul>
+                </div>
+            </div>
+        """
+
+        # 3. Retorna os dados em JSON
+        return JsonResponse({
+            'success': True,
+            'nome': produto_selecionado.nome,
+            'custos_unitarios_chart': chart_values,  # Lista de floats
+            'custos_unitarios_labels': chart_labels,  # Lista de strings
+            'html_detalhe': html_detalhe  # HTML formatado
+        })
+
+    except Produto.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'Produto não encontrado'}, status=404)
+    except NameError:
+        # Garante que funciona mesmo se os modelos não estiverem definidos (para fins de teste)
+        return JsonResponse({'success': False, 'message': 'Erro de Definição de Modelo'}, status=500)
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)}, status=500)

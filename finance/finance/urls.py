@@ -44,5 +44,5 @@ urlpatterns = [
     path('templates/vendas/', views.vendas, name='vendas'),
     path('api/salvar_venda/', views.api_salvar_venda, name='api_salvar_venda'),  # Nova rota
     path('templates/financeiro/', views.financeiro, name='financeiro'),
-
+    path('api/custo-produto/', views.get_custo_produto_json, name='api_custo_produto'),
 ]

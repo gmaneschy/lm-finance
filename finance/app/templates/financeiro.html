@@ -213,10 +213,13 @@
 <script>
     // Variáveis globais para gráficos
     let chartProdutoCustoInstance = null;
+    const divDetalhe = document.getElementById('custo-produto-detalhe');
+    const inputMes = document.querySelector('input[name="mes"]').value;
+    const inputAno = document.querySelector('input[name="ano"]').value;
 
-    // Função de cores aleatórias (Melhorada para ter mais contraste)
+    // Função de cores aleatórias (Mantida)
     function gerarCoresAleatorias(quantidade) {
-        // Paleta base (cores vibrantes e seguras)
+        // ... (o código da função gerarCoresAleatorias permanece o mesmo) ...
         const paleta = [
             '#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b',
             '#858796', '#2a5d4a', '#b7447d', '#724a87', '#99a91f'
@@ -226,8 +229,7 @@
             if (i < paleta.length) {
                 cores.push(paleta[i]);
             } else {
-                // Se a paleta acabar, gera cor aleatória
-                const r = Math.floor(Math.random() * 150) + 100; // Tons mais claros
+                const r = Math.floor(Math.random() * 150) + 100;
                 const g = Math.floor(Math.random() * 150) + 100;
                 const b = Math.floor(Math.random() * 150) + 100;
                 cores.push(`rgb(${r}, ${g}, ${b})`);
@@ -236,15 +238,15 @@
         return cores;
     }
 
-    // Função principal de inicialização do Chart.js
+    // Função principal de inicialização dos Charts (Mantida)
     function inicializarCharts() {
+        // ... (o código das funções chartVendas e chartCustos permanece o mesmo) ...
         // 1. Gráfico de Linha (Vendas por Dia)
         const ctxVendas = document.getElementById('chartVendas').getContext('2d');
         if (ctxVendas) {
             new Chart(ctxVendas, {
                 type: 'line',
                 data: {
-                    // JSON.parse é necessário para converter a string JSON do Django em objeto JS
                     labels: JSON.parse('{{ charts.dias|safe }}'),
                     datasets: [{
                         label: 'Vendas (R$)',
@@ -276,16 +278,16 @@
         }
     }
 
-    // Função para renderizar/atualizar o Gráfico de Custo por Produto
+    // Função para renderizar/atualizar o Gráfico de Custo por Produto (USADA PELO AJAX)
     function renderizarChartProduto(labels, values) {
+        // Devemos garantir que o Canvas exista, pois ele é injetado junto com o HTML detalhe
+        const ctxProduto = document.getElementById('chartProdutoCusto');
+
         // Se a instância já existir, destrói para evitar conflito
         if (chartProdutoCustoInstance) {
             chartProdutoCustoInstance.destroy();
         }
 
-        const ctxProduto = document.getElementById('chartProdutoCusto');
-
-        // 3. Inicializa/Atualiza Gráfico de Custo por Produto
         if (ctxProduto && values && values.length > 0) {
             const cores = gerarCoresAleatorias(values.length);
 
@@ -317,17 +319,52 @@
                     }
                 }
             });
-        } else {
-             // Caso não haja dados ou o elemento ainda não exista
-             // A mensagem "Selecione um produto..." será mostrada pelo template se custo_produto_selecionado for null.
         }
     }
 
-    // Inicialização ao carregar a página
+    // Função principal que faz a requisição AJAX
+    async function carregarCustoProduto(produtoId) {
+        if (!produtoId) {
+            // Se o usuário selecionou "-- Selecione para Analisar --", limpa a seção
+            if (chartProdutoCustoInstance) {
+                chartProdutoCustoInstance.destroy();
+                chartProdutoCustoInstance = null;
+            }
+            divDetalhe.innerHTML = '<p class="text-muted text-center py-3">Selecione um produto no menu acima para ver o detalhamento do custo de produção e o lucro unitário.</p>';
+            return;
+        }
+
+        // URL da nossa nova view de API
+        const url = `/api/custo-produto/?produto_id=${produtoId}&mes=${inputMes}&ano=${inputAno}`;
+
+        try {
+            // Exibe um loading ou desativa o select
+            divDetalhe.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></div>';
+
+            const response = await fetch(url);
+            const data = await response.json();
+
+            if (data.success) {
+                // 1. Injeta o novo HTML da seção de detalhes (inclui o novo canvas)
+                divDetalhe.innerHTML = data.html_detalhe;
+
+                // 2. Renderiza o gráfico usando os dados JSON
+                renderizarChartProduto(data.custos_unitarios_labels, data.custos_unitarios_chart);
+            } else {
+                divDetalhe.innerHTML = `<div class="alert alert-danger">Erro: ${data.message}</div>`;
+            }
+
+        } catch (error) {
+            console.error('Erro ao buscar dados do produto:', error);
+            divDetalhe.innerHTML = '<div class="alert alert-danger">Ocorreu um erro de conexão ou servidor.</div>';
+        }
+    }
+
+    // Inicialização ao carregar a página (Gráficos principais e Custo Padrão)
     window.onload = function() {
         inicializarCharts();
 
-        // Inicializa o gráfico de custo por produto com os dados que vieram do Django (se existirem)
+        // Inicializa o gráfico de custo por produto (se houver dados iniciais do Django)
         {% if custo_produto_selecionado %}
             const produtoLabels = JSON.parse('{{ custo_produto_selecionado.custos_unitarios_labels|safe }}');
             const produtoValues = JSON.parse('{{ custo_produto_selecionado.custos_unitarios_chart|safe }}');
@@ -336,17 +373,11 @@
     };
 
 
-    // --- Lógica de Recarregamento para Análise de Custo por Laço (Mantida a submissão) ---
-    // ATENÇÃO: Se o AJAX não estiver configurado na View, o recarregamento completo ocorre.
+    // --- Listener para o Filtro de Produto (Agora USA FETCH API) ---
     document.getElementById('id_produto_filtro').addEventListener('change', function() {
         const produtoId = this.value;
-        if (produtoId) {
-            // Se não usar AJAX, submete o formulário GET
-            this.form.submit();
-        } else {
-             // Se desmarcar, submete o formulário para limpar a seção
-             this.form.submit();
-        }
+        // Chama a nova função de carregamento AJAX
+        carregarCustoProduto(produtoId);
     });
 
 </script>
