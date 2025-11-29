@@ -174,7 +174,11 @@
 </div>
 
 {% block scripts %}
-
+<!--suppress JsonStandardCompliance -->
+<script type="application/json" id="materiais-data">
+    {{ materiais_data_json|safe }}
+</script>
+<!-- Não apagar script acima -->
 <!-- Dados dos materiais para JavaScript -->
 <link rel="stylesheet" href="{% static 'css/cadastrar_produto.css' %}">
 <script src="{% static 'js/cadastrar_produto.js' %}"></script>

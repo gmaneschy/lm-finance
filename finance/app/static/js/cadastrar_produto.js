@@ -25,13 +25,12 @@ document.addEventListener("DOMContentLoaded", function() {
     try {
         const materiaisJsonElement = document.getElementById('materiais-data');
         if (materiaisJsonElement) {
-            // Garante que o conteúdo seja lido como string antes do parse
             const jsonText = materiaisJsonElement.textContent.trim();
             if (jsonText) {
                 materiaisData = JSON.parse(jsonText);
                 console.log("✅ Materiais carregados:", Object.keys(materiaisData).length);
-                // 💡 DEBUG: Loga o objeto de dados recebido do Django para inspeção
-                console.log("DEBUG: materiaisData (Primeiros 5 itens):", Object.fromEntries(Object.entries(materiaisData).slice(0, 5)));
+                // Log de debug para ver a estrutura dos dados
+                console.log("DEBUG CARGA: materiaisData (Primeiro item):", Object.values(materiaisData)[0]);
             }
         }
     } catch (e) {
@@ -57,6 +56,7 @@ document.addEventListener("DOMContentLoaded", function() {
         if (textoEl) {
             textoEl.textContent = bloqueado ? 'Bloqueado' : 'Desbloqueado';
         }
+        calcularTudo();
     }
 
     if (bloqueioCheckbox) {
@@ -76,25 +76,22 @@ document.addEventListener("DOMContentLoaded", function() {
             return;
         }
 
-        // Clona o primeiro item
         const novoItem = primeiroItem.cloneNode(true);
         novoItem.classList.remove("deletado");
         novoItem.setAttribute("data-form-index", currentFormCount);
 
-        // Remove listeners temporariamente antes da clonagem (embora cloneNode(true) já faça isso)
-        // E limpa os valores do novo item
         novoItem.querySelectorAll("input, select, label").forEach(elemento => {
+            const regex = /form-\d+-/;
+
             if (elemento.tagName === "LABEL") {
                 const forAttr = elemento.getAttribute("for");
                 if (forAttr) {
-                    elemento.setAttribute("for", forAttr.replace(/form-\d+-/, `form-${currentFormCount}-`));
+                    elemento.setAttribute("for", forAttr.replace(regex, `form-${currentFormCount}-`));
                 }
             } else {
-                // Atualiza name e id
-                if (elemento.name) elemento.name = elemento.name.replace(/form-\d+-/, `form-${currentFormCount}-`);
-                if (elemento.id) elemento.id = elemento.id.replace(/form-\d+-/, `form-${currentFormCount}-`);
+                if (elemento.name) elemento.name = elemento.name.replace(regex, `form-${currentFormCount}-`);
+                if (elemento.id) elemento.id = elemento.id.replace(regex, `form-${currentFormCount}-`);
 
-                // Limpa valores
                 if (elemento.tagName === "SELECT") {
                     elemento.selectedIndex = 0;
                 } else if (elemento.type === "number" || elemento.type === "text") {
@@ -105,7 +102,6 @@ document.addEventListener("DOMContentLoaded", function() {
             }
         });
 
-        // Reseta o valor do material
         const valorSpan = novoItem.querySelector('.valor-material-span');
         if (valorSpan) valorSpan.textContent = '0.00';
 
@@ -120,15 +116,11 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // ========== FUNÇÃO: APLICAR EVENTOS ==========
     function aplicarEventos() {
-        // console.log("🔄 Aplicando eventos");
-
-        // EVENTOS: Botões remover
         document.querySelectorAll(".btn-remover-material").forEach(btn => {
             btn.removeEventListener("click", removerMaterialHandler);
             btn.addEventListener("click", removerMaterialHandler);
         });
 
-        // Eventos de cálculo (change e input)
         const selectors = [
             '.material-select',
             '.tipo-unidade-select',
@@ -146,7 +138,6 @@ document.addEventListener("DOMContentLoaded", function() {
             });
         });
 
-        // EVENTOS: Valor de venda (apenas input)
         if (valorVendaInput) {
             valorVendaInput.removeEventListener("input", calcularTudo);
             valorVendaInput.addEventListener("input", calcularTudo);
@@ -159,7 +150,6 @@ document.addEventListener("DOMContentLoaded", function() {
 
         if (materiais.length <= 1) {
             console.warn("⚠️ É necessário manter pelo menos um material no formulário.");
-            // Substitua alert() por um modal customizado no seu projeto final
             return;
         }
 
@@ -188,54 +178,86 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
 
-    // ========== FUNÇÃO: CALCULAR TUDO ==========
+    // ========== FUNÇÃO: CALCULAR TUDO (COM CORREÇÃO DE LOCALE E LOGS DE DEBUG) ==========
     function calcularTudo() {
-        console.log("💰 Calculando valores");
+        console.log("========================================");
+        console.log("💰 INICIANDO CÁLCULO DE CUSTOS");
+        console.log("========================================");
 
         let totalMateriais = 0;
         let totalCustosFixos = 0;
+        let formIndex = 0;
 
         document.querySelectorAll(".material-item").forEach(item => {
+            console.log(`\n--- Item Material #${formIndex} ---`);
             const selectMaterial = item.querySelector('.material-select');
             const selectTipoUnidade = item.querySelector('.tipo-unidade-select');
             const inputQtd = item.querySelector('.qtd-material-input');
             const valorSpan = item.querySelector('.valor-material-span');
 
-            if (selectMaterial && selectTipoUnidade && inputQtd) {
-                const materialId = selectMaterial.value;
-                const tipoUnidade = selectTipoUnidade.value;
-                const quantidade = parseFloat(inputQtd.value) || 0;
-
-                let valorUnitario = 0;
-
-                if (materialId && materiaisData[materialId]) {
-                    const material = materiaisData[materialId];
-
-                    if (tipoUnidade === 'CM') {
-                        valorUnitario = material.valor_por_cm || 0;
-                        console.log(`DEBUG CÁLCULO: Material ID ${materialId} (CM). Valor Unitário LIDO: ${valorUnitario}. Qtd: ${quantidade}`);
-                    } else if (tipoUnidade === 'QUANTIDADE') {
-                        valorUnitario = material.valor_por_quantidade || 0;
-                        // 💡 LOG DE DEBUG ADICIONADO AQUI
-                        console.log(`DEBUG CÁLCULO: Material ID ${materialId} (QUANTIDADE). Valor Unitário LIDO: ${valorUnitario}. Qtd: ${quantidade}`);
-                    }
-
-                    const custoMaterial = valorUnitario * quantidade;
-                    totalMateriais += custoMaterial;
-
-                    if (valorSpan) valorSpan.textContent = custoMaterial.toFixed(2);
-                } else if (valorSpan) {
-                    valorSpan.textContent = '0.00';
-                }
+            // 1. Verificar se os elementos foram encontrados
+            if (!selectMaterial || !selectTipoUnidade || !inputQtd) {
+                 console.error(`❌ Elementos de formulário não encontrados no item #${formIndex}. Pulando...`);
+                 formIndex++;
+                 return;
             }
+
+            const materialId = selectMaterial.value;
+            const tipoUnidade = selectTipoUnidade.value;
+
+            // 2. Leitura e conversão da Quantidade
+            const inputQtdValue = inputQtd.value;
+            const quantidade = parseFloat(inputQtdValue.replace(',', '.')) || 0;
+
+            console.log(`   - materialId Selecionado: "${materialId}"`);
+            console.log(`   - Tipo de Unidade: "${tipoUnidade}"`);
+            console.log(`   - Qtd (String Lida): "${inputQtdValue}"`);
+            console.log(`   - Qtd (Convertida Float): ${quantidade}`);
+
+            let valorUnitario = 0;
+            let custoMaterial = 0;
+
+            // 3. Verificar se há material selecionado e dados disponíveis
+            if (materialId && materiaisData[materialId]) {
+                const material = materiaisData[materialId];
+                console.log(`   - Dados do Material (JSON):`, material);
+
+                if (tipoUnidade === 'CM') {
+                    valorUnitario = parseFloat(material.valor_por_cm || 0) || 0;
+                } else if (tipoUnidade === 'QUANTIDADE') {
+                    valorUnitario = parseFloat(material.valor_por_quantidade || 0) || 0;
+                }
+
+                // 4. Cálculo final do material
+                custoMaterial = valorUnitario * quantidade;
+                totalMateriais += custoMaterial;
+
+                console.log(`   - Valor Unitário Final: ${valorUnitario.toFixed(4)}`);
+                console.log(`   - Custo Material Calculado: R$ ${custoMaterial.toFixed(2)}`);
+
+                if (valorSpan) valorSpan.textContent = custoMaterial.toFixed(2);
+
+            } else {
+                console.log("   - ⚠️ Material não selecionado ou dados indisponíveis.");
+                if (valorSpan) valorSpan.textContent = '0.00';
+            }
+            formIndex++;
         });
 
+        console.log("\n--- Cálculo Custos Fixos ---");
         // Cálculo dos custos fixos
         document.querySelectorAll('.custo-fixo-input').forEach(input => {
-            totalCustosFixos += parseFloat(input.value) || 0;
+            const custoValor = parseFloat(input.value.replace(',', '.')) || 0;
+            totalCustosFixos += custoValor;
         });
+        console.log(`   - Total Custos Fixos (Calculado): R$ ${totalCustosFixos.toFixed(2)}`);
 
+        // Cálculo Total
         const custoTotal = totalMateriais + totalCustosFixos;
+        console.log(`--- Resumo Final ---`);
+        console.log(`   - Total Materiais: R$ ${totalMateriais.toFixed(2)}`);
+        console.log(`   - Custo Total Estimado: R$ ${custoTotal.toFixed(2)}`);
+
 
         if (totalMateriaisSpan) totalMateriaisSpan.textContent = totalMateriais.toFixed(2);
         if (totalCustosFixosSpan) totalCustosFixosSpan.textContent = totalCustosFixos.toFixed(2);
@@ -245,12 +267,16 @@ document.addEventListener("DOMContentLoaded", function() {
 
         // Cálculo do Lucro
         if (valorVendaInput && lucroVendaInput) {
-            const valorVenda = parseFloat(valorVendaInput.value) || 0;
+            const valorVenda = parseFloat(valorVendaInput.value.replace(',', '.')) || 0;
             const lucro = valorVenda - custoTotal;
             lucroVendaInput.value = lucro.toFixed(2);
+            console.log(`   - Valor de Venda: R$ ${valorVenda.toFixed(2)}`);
+            console.log(`   - Lucro por Venda: R$ ${lucro.toFixed(2)}`);
         }
 
-        console.log(`📊 Materiais: R$ ${totalMateriais.toFixed(2)} | Custos: R$ ${totalCustosFixos.toFixed(2)} | Total: R$ ${custoTotal.toFixed(2)}`);
+        console.log("========================================");
+        console.log("💰 CÁLCULO CONCLUÍDO");
+        console.log("========================================");
     }
 
     // ========== INICIALIZAÇÃO ==========

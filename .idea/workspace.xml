@@ -4,13 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="887f3ea7-6749-4b04-b6aa-5711d566189f" name="Changes" comment="Correção do delete de produto no estoque">
+    <list default="true" id="887f3ea7-6749-4b04-b6aa-5711d566189f" name="Changes" comment="css ajuste">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/finance/app/static/css/cadastrar_produto.css" beforeDir="false" afterPath="$PROJECT_DIR$/finance/app/static/css/cadastrar_produto.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/finance/app/static/css/estoque.css" beforeDir="false" afterPath="$PROJECT_DIR$/finance/app/static/css/estoque.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/finance/app/static/css/vendas.css" beforeDir="false" afterPath="$PROJECT_DIR$/finance/app/static/css/vendas.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/finance/app/static/js/cadastrar_produto.js" beforeDir="false" afterPath="$PROJECT_DIR$/finance/app/static/js/cadastrar_produto.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/finance/app/templates/cadastrar_produto.html" beforeDir="false" afterPath="$PROJECT_DIR$/finance/app/templates/cadastrar_produto.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/finance/app/templates/estoque.html" beforeDir="false" afterPath="$PROJECT_DIR$/finance/app/templates/estoque.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/finance/db.sqlite3" beforeDir="false" afterPath="$PROJECT_DIR$/finance/db.sqlite3" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -225,16 +223,5 @@
     <MESSAGE value="Colunas cadastrar_produto.html" />
     <MESSAGE value="Correção do delete de produto no estoque" />
     <option name="LAST_COMMIT_MESSAGE" value="Correção do delete de produto no estoque" />
-  </component>
-  <component name="XDebuggerManager">
-    <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/finance/app/views.py</url>
-          <line>176</line>
-          <option name="timeStamp" value="6" />
-        </line-breakpoint>
-      </breakpoints>
-    </breakpoint-manager>
   </component>
 </project>
