@@ -2,11 +2,51 @@
 /* NAVBAR ISOLADO - NÃO AFETA NENHUMA OUTRA PÁGINA                  */
 /* ================================================================= */
 
+/* ================================================================= */
+/* CONFIGURAÇÕES GERAIS                                              */
+/* ================================================================= */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    min-height: 100vh;
+    margin: 0;
+}
+
+/* Classe para bloquear o scroll do body quando o menu estiver aberto */
+body.no-scroll {
+    overflow: hidden;
+}
+
+/* ================================================================= */
+/* ESTILO DO OVERLAY (Fundo Escuro Transparente)                     */
+/* ================================================================= */
+#overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    z-index: 999;
+
+    /* Esconde o overlay de forma instantânea */
+    display: none;
+    visibility: hidden;
+}
+
+#overlay.active {
+    display: block;
+    visibility: visible;
+}
+
+/* ================================================================= */
+/* NAVBAR PRINCIPAL (Comportamento padrão para Desktop)              */
+/* ================================================================= */
 .main-navbar {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     padding: 0 2rem;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-    position: sticky;
+    position: sticky; /* Sticky no Desktop */
     top: 0;
     z-index: 1000;
     backdrop-filter: blur(10px);
@@ -15,13 +55,29 @@
     justify-content: center;
     align-items: center;
     flex-wrap: wrap;
-    gap: 0.5rem;
 
     animation: slideInDown 0.5s ease-out;
-
 }
 
-/* Links */
+/* Título "Menu" (Escondido no Desktop) */
+.nav-brand {
+    display: none;
+    color: white;
+    font-weight: bold;
+    font-size: 1.2rem;
+    text-transform: uppercase;
+}
+
+/* Container dos Links (Flex horizontal no Desktop) */
+.nav-links {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+/* ================================================================= */
+/* ESTILO DOS LINKS (Mantendo o design original)                     */
+/* ================================================================= */
 .main-navbar a {
     color: white;
     text-decoration: none;
@@ -39,15 +95,12 @@
     letter-spacing: 0.5px;
 }
 
-/* Hover */
 .main-navbar a:hover {
     background: rgba(255, 255, 255, 0.15);
     transform: translateY(-2px);
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-
 }
 
-/* Linha animada */
 .main-navbar a::after {
     content: '';
     position: absolute;
@@ -58,32 +111,92 @@
     background: linear-gradient(90deg, #ffd89b, #19547b);
     transition: all 0.3s ease;
     transform: translateX(-50%);
-
 }
 
 .main-navbar a:hover::after {
     width: 80%;
 }
 
-/* Link ativo destacado via JS */
 .main-navbar a.highlight {
     background: rgba(255, 255, 255, 0.25) !important;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
 }
 
-/* Responsividade */
+/* ================================================================= */
+/* BOTÃO HAMBURGUER (Escondido no Desktop)                           */
+/* ================================================================= */
+.mobile-toggle {
+    display: none;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0.5rem;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.mobile-toggle span {
+    display: block;
+    width: 25px;
+    height: 3px;
+    background-color: white;
+    border-radius: 3px;
+    transition: all 0.3s ease;
+}
+
+
+/* ================================================================= */
+/* RESPONSIVIDADE (MOBILE - ESTILO DROP SIMPLES)                     */
+/* ================================================================= */
 @media (max-width: 768px) {
     .main-navbar {
-        padding: 0 1rem;
-        flex-direction: column;
-        gap: 0;
+        position: fixed; /* Fixa o header da navbar */
+        width: 100%;
+        box-sizing: border-box;
+        justify-content: space-between;
+        padding: 0.8rem 1.5rem;
+
+        animation: none;
     }
 
+    .nav-brand {
+        display: block;
+    }
+
+    .mobile-toggle {
+        display: flex;
+    }
+
+    /* Container dos Links (O menu de sobreposição) */
+    .nav-links {
+        width: 100%;
+        flex-direction: column;
+        gap: 0;
+
+        /* Posição Absoluta para Sobrepor (Cair) */
+        position: absolute;
+        top: 100%;
+        left: 0;
+
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+
+        /* NOVO: Esconde de forma instantânea (sem transição) */
+        display: none;
+        z-index: 1000;
+    }
+
+    /* Quando JS adiciona a classe .active, o menu aparece instantaneamente */
+    .nav-links.active {
+        display: flex;
+    }
+
+    /* Estilo dos Links no Dropdown */
     .main-navbar a {
         width: 100%;
         justify-content: center;
-        padding: 1rem;
         border-radius: 0;
+        padding: 1rem;
         border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     }
 
@@ -93,17 +206,22 @@
 
     .main-navbar a:hover {
         transform: none;
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+    /* Animação do X */
+    .mobile-toggle.open span:nth-child(1) {
+        transform: rotate(45deg) translate(5px, 6px);
+    }
+    .mobile-toggle.open span:nth-child(2) {
+        opacity: 0;
+    }
+    .mobile-toggle.open span:nth-child(3) {
+        transform: rotate(-45deg) translate(5px, -6px);
     }
 }
 
-@media (max-width: 480px) {
-    .main-navbar a {
-        font-size: 0.85rem;
-        padding: 0.8rem;
-    }
-}
-
-/* Animação */
+/* Animação Slide In Inicial (Apenas Desktop) */
 @keyframes slideInDown {
     from {
         transform: translateY(-100%);
@@ -113,12 +231,4 @@
         transform: translateY(0);
         opacity: 1;
     }
-}
-
-
-body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-    min-height: 100vh;
-    margin: 0;
 }

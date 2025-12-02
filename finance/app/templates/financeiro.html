@@ -7,8 +7,9 @@
 {% block content %}
 
 <div class="container py-4">
+    <h3>📊 Painel Financeiro</h3>
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3>📊 Painel Financeiro</h3>
+
         <div class="btn-group">
             <a href="?mes={{ meses_nav.anterior.month }}&ano={{ meses_nav.anterior.year }}" class="btn btn-outline-secondary">◀ Anterior</a>
             <button class="btn btn-secondary disabled">{{ data_atual|date:"F Y"|upper }}</button>

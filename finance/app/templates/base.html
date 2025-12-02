@@ -9,30 +9,67 @@
     <link rel="stylesheet" href="{% static 'css/navbar.css' %}">
 </head>
 <body>
+
 <nav class="main-navbar">
-    <a href="{% url 'registradora' %}"> Registradora </a>
-    <a href="{% url 'cadastrar_produto' %}"> Cadastrar Produto </a>
-    <a href="{% url 'estoque' %}"> Estoque </a>
-    <a href="{% url 'vendas' %}"> Vendas </a>
-    <a href="{% url 'financeiro' %}"> Financeiro </a>
+    <div class="nav-brand">Menu</div>
+
+    <button class="mobile-toggle" aria-label="Abrir Menu">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+
+    <div class="nav-links">
+        <a href="{% url 'registradora' %}"> Registradora </a>
+        <a href="{% url 'cadastrar_produto' %}"> Cadastrar Produto </a>
+        <a href="{% url 'estoque' %}"> Estoque </a>
+        <a href="{% url 'vendas' %}"> Vendas </a>
+        <a href="{% url 'financeiro' %}"> Financeiro </a>
+    </div>
 </nav>
 
-    {% block content %}
-    {% endblock %}
+<!-- O Overlay que escurecerá o fundo, para sobreposição -->
+<div id="overlay"></div>
 
+{% block content %}
+{% endblock %}
 
-  <script>
-    // Destacar link da página atual
+<script>
     document.addEventListener('DOMContentLoaded', function() {
-        const currentUrl = window.location.href;
-        const navLinks = document.querySelectorAll('nav a');
+        // 1. Lógica do Menu Mobile Dropdown (Simples, Sem Animação)
+        const toggleBtn = document.querySelector('.mobile-toggle');
+        const navLinks = document.querySelector('.nav-links');
+        const overlay = document.getElementById('overlay');
 
-        navLinks.forEach(link => {
+        toggleBtn.addEventListener('click', () => {
+            const isActive = navLinks.classList.toggle('active');
+            toggleBtn.classList.toggle('open');
+            overlay.classList.toggle('active');
+
+            // Bloqueia o scroll do body enquanto o menu estiver aberto
+            document.body.classList.toggle('no-scroll', isActive);
+        });
+
+        // NOVO: Adicione um listener para fechar o menu ao clicar no overlay
+        overlay.addEventListener('click', () => {
+            if (navLinks.classList.contains('active')) {
+                navLinks.classList.remove('active');
+                toggleBtn.classList.remove('open');
+                overlay.classList.remove('active');
+                document.body.classList.remove('no-scroll');
+            }
+        });
+
+        // 2. Destacar link da página atual
+        const currentUrl = window.location.href;
+        const links = document.querySelectorAll('.nav-links a');
+
+        links.forEach(link => {
             if (currentUrl.includes(link.getAttribute('href'))) {
                 link.classList.add('highlight');
             }
         });
     });
-  </script>
+</script>
 </body>
 </html>
